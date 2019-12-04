@@ -1,0 +1,25 @@
+﻿@model DynamicForms.TemplateFormData
+@using System.Text.RegularExpressions;
+@using DynamicForms;
+
+@{
+    Layout = null;
+}
+
+<html>
+    <head>
+    </head>
+    <body>
+            <div class="MaintenanceDynamicForm MaintenanceDynamicFormSection" style="overflow: auto;">
+                <div class="item-contain">
+                    @Html.Partial("_TemplateDynamicFormConfiguration", Model)
+                </div>
+                <div class="BtnContain" >
+                    <input type="button"  id="SaveMaintenanceDynamicForm" value="Save"/>
+                    <input type="button" class="CancelBtn" value="Cancel" />
+                    <span style="float:right" class="status-label" id="MaintenanceDynamicFormLbl"></span>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

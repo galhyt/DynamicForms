@@ -1,0 +1,4 @@
+C:\Projects\DynamicForms\DynamicForms\bin\Release\DynamicForms.dll
+C:\Projects\DynamicForms\DynamicForms\bin\Release\DynamicForms.pdb
+C:\Projects\DynamicForms\DynamicForms\obj\Release\DynamicForms.dll
+C:\Projects\DynamicForms\DynamicForms\obj\Release\DynamicForms.pdb

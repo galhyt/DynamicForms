@@ -1,0 +1,156 @@
+﻿@model DynamicForms.TemplateFormData
+@using DynamicForms;
+
+@{
+    TemplateDynamicFormModel formModel = new TemplateDynamicFormModel(Model);
+    TemplateDynamicFormModelWrapper modelWrapper = new TemplateDynamicFormWrapper(formModel);
+}
+
+@helper GetFieldType(TemplateDynamicFormModelWrapper.FieldData field, int mIndx)
+{
+    switch(field["HtmlType"].ToString())
+    {
+        case "checkbox":
+            <input type="checkbox" class="template-html-ctrl" readonly="readonly" />
+            break;
+        case "textarea":
+            <textarea class="template-html-ctrl" readonly="readonly"></textarea>
+            break;
+        default:
+            <input type="@field["HtmlType"].ToString()" class="template-html-ctrl" readonly="readonly" />
+            break;
+    }
+    @Html.HiddenFor(m=>m.FieldsMetaData[mIndx].FieldType)
+}
+
+<style>
+    .TemplateDynamicFormContainer {
+        direction: ltr;
+        border: none;
+    }
+
+    .DynamicFormRow {
+        border: dashed;
+        border-width: thin;
+    }
+
+    .template-actions-menu {
+        position: fixed;
+        background-color: #bfb6b6;
+        display: none;
+    }
+
+    .template-actions-btn {
+        cursor: pointer;
+    }
+
+    .template-html-ctrl {
+        cursor: pointer;
+        width: 95%;
+    }
+</style>
+
+<div class="TemplateDynamicFormContainer">
+    <div style="margin-top: 1em; margin-bottom: 1em; text-align: center;">
+        @Html.TextBoxFor(m => m.FormTitle, new { @placeholder="Form Title", @class="FormTitle" })
+    </div>
+    <div>
+        @for (int rIndx = 0; rIndx < modelWrapper.FormTable.Count(); rIndx++)
+        {
+            TemplateDynamicFormModelWrapper.TableRow row = modelWrapper.FormTable[rIndx];
+            int colWidth = modelWrapper.GetRowColWidth(row);
+            int? titleTdWidth = modelWrapper.GetRowColTitleWidth(row);
+            string tdStyle = null;
+            if (titleTdWidth != null)
+            {
+                tdStyle = string.Format("width: {0}%;", titleTdWidth.Value);
+            }
+            @:<div class="DynamicFormRow draggable ItemBlock" id="DynamicFormRow[@rIndx]" child-item="DynamicFormColumn" draggable="true">
+                @:<div class="TemplateItemActions">
+                    <img src="images/file_edit.png" class="template-actions-btn" alt="Actions" />
+                @:</div>
+                for (int cIndx = 0; cIndx < row.RowCells.Count(); cIndx++)
+                {
+                    TemplateDynamicFormModelWrapper.RowCell cell = row.RowCells[cIndx];
+                    @:<div class="DynamicFormColumn draggable ItemBlock" id="DynamicFormColumn[@rIndx][@cIndx]" child-item="DynamicFormField" draggable="true" style="width: @colWidth%">
+                        @:<div class="TemplateItemActions">
+                            <img src="images/file_edit.png" class="template-actions-btn" alt="Actions" />
+                        @:</div>
+                        @:<div class="ColumnFormFields">
+                            foreach (TemplateDynamicFormModelWrapper.FieldData field in cell.Fields)
+                            {
+                                int fIndx = cell.Fields.IndexOf(field);
+                                int mIndx = modelWrapper.MetaDataIndexOf(field["FieldName"].ToString());
+                                @:<div class="DynamicFormField draggable ItemBlock" id="DynamicFormField[@rIndx][@cIndx][@fIndx]" mIndx="@mIndx" draggable="true">
+                                    @:<div class="FormFieldTitle">@Html.TextBoxFor(m=>m.FieldsMetaData[mIndx].FieldTitle, new {@placeholder="Title", @class="FieldTitle"})</div>
+                                    @:<div class="FormFieldConfigContent">
+                                        @GetFieldType(field, mIndx)
+                                        @Html.HiddenFor(m=>m.UITable[rIndx][cIndx][fIndx].HtmlType)
+                                    @:</div>
+                                    @Html.HiddenFor(m=>m.FieldsMetaData[mIndx].FieldName)
+                                @:</div>
+                            }
+                        @:</div>
+                    @:</div>
+                }
+            @:</div>
+        }
+    </div>
+    <div class="template-actions-menu">
+    </div>
+</div>
+<script id="template-actions-menu" type="text/x-handlebars-template">
+    <ul>
+        <li class="template_action_delete" block-id="{{blockId}}">Delete {{item}}</li>
+        <li class="template_action_add_item" block-id="{{blockId}}">Add {{item}}</li>
+        <li class="template_action_add_child" block-id="{{blockId}}">Add {{child}}</li>
+    </ul>
+</script>
+<script id="template-field-type-menu" type="text/x-handlebars-template">
+    <ul>
+        <li class="template_field_type_item" item-type="checkbox" block-id="{{blockId}}">Checkbox</li>
+        <li class="template_field_type_item" item-type="text" block-id="{{blockId}}">Text</li>
+        <li class="template_field_type_item" item-type="number" block-id="{{blockId}}">Number</li>
+        <li class="template_field_type_item" item-type="textarea" block-id="{{blockId}}">Text Area</li>
+        <li class="template_field_type_item" item-type="delete" block-id="{{blockId}}">Delete</li>
+    </ul>
+</script>
+<script id="template-field-type-item" type="text/x-handlebars-template">
+    <input type="hidden" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldType).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldType).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"")" value="{{fieldType}}" />
+    {{#ifCond itemType '==' "textarea"}}
+        <textarea class="template-html-ctrl" readonly="readonly"></textarea>
+    {{else}}
+        <input type="{{itemType}}" class="template-html-ctrl" readonly="readonly" />
+    {{/ifCond}}
+    <input type="hidden" id="@Html.IdFor(m=>m.UITable[0][0][0].HtmlType).ToString().Replace("_0__0__0_", "_{{rIndx}}__{{cIndx}}__{{fIndx}}_")" name="@Html.NameFor(m=>m.UITable[0][0][0].HtmlType).ToString().Replace("[0][0][0]", "[{{rIndx}}][{{cIndx}}][{{fIndx}}]").Replace("&quot;", "\"")" value="{{itemType}}" />
+</script>
+<script id="template-dynamic-form-item" type="text/x-handlebars-template">
+        {{#ifCond className '!=' "DynamicFormField"}}
+        <div class="{{className}} draggable ItemBlock" id="{{id}}" child-item="{{childItem}}" draggable="true">
+            <div class="TemplateItemActions">
+              <img src="images/file_edit.png" class="template-actions-btn" alt="Actions" />
+            </div>
+        {{else}}
+        <div class="{{className}} draggable ItemBlock" id="{{id}}" child-item="{{childItem}}" mIndx="{{mIndx}}" draggable="true">
+        {{/ifCond}}
+        {{#ifCond className '==' "DynamicFormColumn"}}
+            <div class="ColumnFormFields">
+                {{#renderNewField}}{{/renderNewField}}
+            </div>
+        {{/ifCond}}
+        {{#ifCond className '==' "DynamicFormField"}}
+            {{#renderNewFieldContent}}{{/renderNewFieldContent}}
+        {{/ifCond}}
+    </div>
+</script>
+<script id="template-dynamic-form-field" type="text/x-handlebars-template">
+        <div class="FormFieldTitle">
+            <input type="text" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldTitle).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldTitle).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"") placeholder="Title" class="FieldTitle" />
+        </div>
+        <div class="FormFieldConfigContent">
+            <input type="hidden" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldType).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldType).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"")" value="System.String" />
+            <input type="text" class="template-html-ctrl" readonly="readonly" />
+            <input type="hidden" id="@Html.IdFor(m=>m.UITable[0][0][0].HtmlType).ToString().Replace("_0__0__0_", "_{{rIndx}}__{{cIndx}}__{{fIndx}}_")" name="@Html.NameFor(m=>m.UITable[0][0][0].HtmlType).ToString().Replace("[0][0][0]", "[{{rIndx}}][{{cIndx}}][{{fIndx}}]").Replace("&quot;", "\"")" value="text" />
+        </div>
+        <input type="hidden" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldName).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldName).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"")" value="{{fieldName}}" />
+</script>

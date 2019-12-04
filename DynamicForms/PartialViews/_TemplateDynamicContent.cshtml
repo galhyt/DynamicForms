@@ -1,0 +1,49 @@
+﻿@using DynamicForms;
+
+@{TemplateDynamicFormModelWrapper FormWrapper = new TemplateDynamicFormModelWrapper(Model);}
+<style>
+    .TemplateDynamicFormContainer {
+        border: none;
+    }
+
+    .TemplateDynamicFormContainer .FormFieldConfigContent {
+        width: 50%;
+    }
+
+    .TemplateDynamicFormContainer .FormFieldTitle {
+        width: 50%;
+        float: left;
+        text-align:left;
+    }
+</style>
+@foreach (TemplateDynamicFormModelWrapper.TableRow row in FormWrapper.FormTable)
+{
+    int rIndx = FormWrapper.FormTable.IndexOf(row);
+    int colWidth = FormWrapper.GetRowColWidth(row);
+    int? titleTdWidth = FormWrapper.GetRowColTitleWidth(row);
+    string tdStyle = null;
+    if (titleTdWidth != null)
+    {
+        tdStyle = string.Format("width: {0}%;", titleTdWidth.Value);
+    }
+    @:<div class="DynamicFormRow">
+    foreach (TemplateDynamicFormWrapper.RowCell cell in row.RowCells)
+    {
+        int cIndx = row.RowCells.IndexOf(cell);
+        @:<div class="DynamicFormColumn" style="width: @colWidth%">
+            @:<div class="ColumnFormFields">
+                foreach (TemplateDynamicFormWrapper.FieldData field in cell.Fields)
+                {
+                    int fIndx = cell.Fields.IndexOf(field);
+                    int mIndx = FormWrapper.MetaDataIndexOf(field["FieldName"].ToString());
+                    <div class="DynamicFormField">
+                        <div class="FormFieldTitle">@field["FieldTitle"]</div>
+                        <div class="FormFieldConfigContent">@(Html.GetFieldByType(field, rIndx, cIndx, fIndx, mIndx))</div>
+                    </div>
+                }
+            @:</div>
+        @:</div>
+                    
+    }
+    @:</div>
+}
