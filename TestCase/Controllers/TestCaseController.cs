@@ -15,8 +15,10 @@ namespace TestCase.Controllers
     public class TestCaseController : Controller
     {
         [DynamicFormsConfig(DataFile = "Data/DataSrc.json", FormPath = "TestCase/ExampleForm")]
-        public void Configuration()
+        public ActionResult Configuration()
         {
+            TemplateFormData model = new TemplateFormData();
+            return View(model);
         }
 
         [AcceptVerbs(HttpVerbs.Post)]

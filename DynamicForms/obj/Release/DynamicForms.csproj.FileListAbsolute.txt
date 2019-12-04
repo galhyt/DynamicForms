@@ -1,4 +1,6 @@
-C:\Projects\DynamicForms\DynamicForms\bin\Release\DynamicForms.dll
-C:\Projects\DynamicForms\DynamicForms\bin\Release\DynamicForms.pdb
-C:\Projects\DynamicForms\DynamicForms\obj\Release\DynamicForms.dll
-C:\Projects\DynamicForms\DynamicForms\obj\Release\DynamicForms.pdb
+c:\Projects\DynamicForms\DynamicForms\bin\Release\DynamicForms.dll
+c:\Projects\DynamicForms\DynamicForms\bin\Release\DynamicForms.pdb
+c:\Projects\DynamicForms\DynamicForms\bin\Release\Newtonsoft.Json.dll
+c:\Projects\DynamicForms\DynamicForms\bin\Release\Newtonsoft.Json.xml
+c:\Projects\DynamicForms\DynamicForms\obj\Release\DynamicForms.dll
+c:\Projects\DynamicForms\DynamicForms\obj\Release\DynamicForms.pdb

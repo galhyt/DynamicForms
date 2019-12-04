@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Web;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace DynamicForms
 {
@@ -13,47 +14,51 @@ namespace DynamicForms
     {
         public string DataFile;
         public string FormPath;
-        
-        public override void OnActionExecuting(ActionExecutingContext filterContext)
+
+        public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
             string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
-            string content = ReadFile(path);
+            string content = ActionFilterHelper.ReadFile(path);
             FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(content);
             if (Forms == null) Forms = new FormsTemplates();
             Forms.Init(FormPath);
 
-            AddFilesToRunEnvironment();
+            filterContext.Controller.ViewData.Model = (object)Forms[FormPath];
+            OverrideView(filterContext);
 
-            string result = RenderViewToString(filterContext.RouteData.Values["Action"].ToString(), filterContext.Controller.ControllerContext, (object)Forms[FormPath]);
-            result = ResultOverride(result);
-
-            filterContext.RequestContext.HttpContext.Response.Write(result);
-            base.OnActionExecuting(filterContext);
-        }
-
-        public override void OnActionExecuted(ActionExecutedContext filterContext)
-        {
             base.OnActionExecuted(filterContext);
         }
 
-        private void AddFilesToRunEnvironment()
+        private void OverrideView(ActionExecutedContext filterContext)
         {
+            filterContext.HttpContext.Response.Filter = new MinifyHtmlStream(filterContext);
+        }
+
+    }
+
+    internal class ActionFilterHelper
+    {
+        public static void AddFilesToRunEnvironment(ActionExecutedContext filterContext)
+        {
+            string DynamicFormsProjectFolder = GetDynamicFormsProjectFolder(filterContext);
+            if (DynamicFormsProjectFolder == null) return;
+
             string curDir = filterContext.HttpContext.Server.MapPath("~");
             if (!Directory.Exists(curDir + @"\Js")) Directory.CreateDirectory(curDir + @"\Js");
             if (!Directory.Exists(curDir + @"\Js\ThirdParty")) Directory.CreateDirectory(curDir + @"\Js\ThirdParty");
-            foreach (string path in new string { @"\Js\ThirdParty\jquery-1.6.2.min.js", @"\Js\ThirdParty\handlebars-v2.0.0.js", @"\Js\DynamicForms.js" })
+            foreach (string path in new string[] { @"\Js\ThirdParty\jquery-1.6.2.min.js", @"\Js\ThirdParty\handlebars-v2.0.0.js", @"\Js\DynamicForms.js" })
             {
                 if (!File.Exists(curDir + path))
-                    File.Copy(filterContext.HttpContext.Server.MapPath(@"~\..\DynamicForms" + path), curDir + path);
+                    File.Copy(DynamicFormsProjectFolder + path, curDir + path);
             }
         }
 
-        private string ResultOverride(string result)
+        public static string ResultOverride(string result, UrlHelper Url)
         {
             Regex reg = new Regex(@"(?<=\<head\>)[.\W]*(?=\<\/head\>)", RegexOptions.Multiline);
-            string toAdd = @"<script src=""~\Js\ThirdParty\jquery-1.6.2.min.js"" type=""text/javascript""></script>" + System.Environment.NewLine +
-                @"<script src=""~\Js\ThirdParty\handlebars-v2.0.0.js"" type=""text/javascript""></script>" + System.Environment.NewLine +
-                @"<script type=""text/javascript"" src=""~\Js\DynamicForms.js""></script>" + System.Environment.NewLine +
+            string toAdd = @"<script src=""" + Url.Content(@"~\Js\ThirdParty\jquery-1.6.2.min.js") + @""" type=""text/javascript""></script>" + System.Environment.NewLine +
+                @"<script src=""" + Url.Content(@"~\Js\ThirdParty\handlebars-v2.0.0.js") + @""" type=""text/javascript""></script>" + System.Environment.NewLine +
+                @"<script type=""text/javascript"" src=""" + Url.Content(@"~\Js\DynamicForms.js") + @"""></script>" + System.Environment.NewLine +
                 @"<script type=""text/javascript"">" + System.Environment.NewLine +
                 @"    $(document).ready(TemplateDynamicFormConfiguration.init);" + System.Environment.NewLine +
                 @"</script>" + System.Environment.NewLine;
@@ -66,7 +71,31 @@ namespace DynamicForms
             return result;
         }
 
-        private string RenderViewToString(string viewName, ControllerContext context, object model)
+        public static string ReadFile(string path)
+        {
+            System.IO.StreamReader myFile = new System.IO.StreamReader(path);
+            string content = myFile.ReadToEnd();
+            myFile.Close();
+            return content;
+        }
+
+        private static string GetDynamicFormsProjectFolder(ActionExecutedContext filterContext)
+        {
+            string curDir = filterContext.HttpContext.Server.MapPath("~");
+            return _GetDynamicFormsProjectFolder(curDir);
+        }
+
+        private static string _GetDynamicFormsProjectFolder(string curDir)
+        {
+            string[] dirs = Directory.GetDirectories(curDir, "DynamicForms");
+            if (dirs.Count() > 0) return dirs[0];
+            DirectoryInfo info = Directory.GetParent(curDir);
+            if (info == null) return null;
+
+            return _GetDynamicFormsProjectFolder(info.FullName);
+        }
+
+        private static string RenderViewToString(string viewName, ControllerContext context, object model)
         {
             context.Controller.ViewData.Model = model;
 
@@ -80,12 +109,37 @@ namespace DynamicForms
             }
         }
 
-        private static string ReadFile(string path)
+    }
+
+    internal sealed class MinifyHtmlStream : MemoryStream
+    {
+        private readonly MemoryStream BufferStream;
+        private readonly Stream FilterStream;
+        private ActionExecutedContext filterContext;
+
+        public MinifyHtmlStream(ActionExecutedContext fc)
         {
-            System.IO.StreamReader myFile = new System.IO.StreamReader(path);
-            string content = myFile.ReadToEnd();
-            myFile.Close();
-            return content;
+            BufferStream = new MemoryStream();
+            filterContext = fc;
+            FilterStream = filterContext.HttpContext.Response.Filter;
+        }
+
+        public override void Flush()
+        {
+            string result = System.Text.Encoding.UTF8.GetString(BufferStream.ToArray());
+            ActionFilterHelper.AddFilesToRunEnvironment(filterContext);
+            result = ActionFilterHelper.ResultOverride(result, ((Controller)filterContext.Controller).Url);
+            byte[] newBuffer = Encoding.UTF8.GetBytes(result);
+            
+            FilterStream.Write(newBuffer, 0, newBuffer.Length);
+        }
+
+        public override void Write(
+            byte[] buffer,
+            int offset,
+            int count)
+        {
+            BufferStream.Write(buffer, offset, count);
         }
     }
 }
