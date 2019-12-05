@@ -231,7 +231,6 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\TestCase\Configuration.cshtml" />
     <Content Include="Views\TestCase\TestCaseForm.cshtml" />
-    <Content Include="Views\TestCase\_TemplateDynamicFormConfiguration.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

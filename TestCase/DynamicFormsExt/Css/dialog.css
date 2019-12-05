@@ -1,0 +1,225 @@
+﻿html
+{
+    font-size:16px;
+}
+
+body
+{  
+    background-color:#dcdcdc;
+    font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+    color:#363636;
+    font-size:.85em;
+    padding-bottom:50px;
+}
+
+#filterbyTable td
+{
+    padding-right:35px;
+}
+
+#DateTimeTable
+{
+    width:65%;
+}
+
+#DateTimeTable .StartDateContain
+{
+    margin-right:50px;
+}
+
+#stationfilter-contain, #devicefilter-contain, #maintaintypefilter-contain
+{
+    display:none;
+}
+
+#deviceDescription
+{
+    text-align:center;
+}
+
+#deviceDetails,#stationDetails
+{
+    padding:10px;
+    display:none;
+    margin:10px;
+     box-shadow:0px 1px 3px rgba(0,0,0,70);
+    -moz-box-shadow:0px 1px 3px rgba(0,0,0,70);
+    -webkit-box-shadow:0px 1px 3px rgba(0,0,0,70);
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    -khtml-border-radius: 6px;
+    border-radius: 6px;
+    
+}
+
+#devicesDetails #Devices {
+    height: 100px;
+}
+
+#checkAll
+{
+    margin-left:20px;
+}
+
+/* Styles for basic forms
+-----------------------------------------------------------*/
+
+.floatL
+{
+    float:left;
+}
+
+.floatR
+{
+    float:right;
+}
+
+.ui-datepicker
+{
+    font-size:0.85em !important;
+}
+
+fieldset 
+{
+    border:1px solid #ffffff;
+    padding:.5em 1.4em 1.4em 1.4em;
+    margin:0 0 1.5em 0;
+    background-color:#dcdcdc;
+}
+
+legend 
+{
+    font-size:1.2em;
+    font-weight: bold;
+    color:#ffffff;
+    font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+}
+
+textarea 
+{
+    min-height:4.688em;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+    border-radius: 5px;
+    border:1px solid #a9a9a9;
+    resize:none;
+}
+
+.editor-label 
+{
+    margin: 1em 0 0 0;
+}
+
+.editor-field 
+{
+    margin:0.5em 0 0 0;
+}
+
+input[type="button"],[type="submit"],[type="file"]
+{
+    cursor:pointer;
+    border:none;
+    padding:5px;
+    font-size:1em;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -khtml-border-radius: 2px;
+    border-radius: 2px;
+    font-weight:bold;
+    color:#363636;
+
+}
+
+input[type="button"]:hover,[type="submit"]:hover
+{
+    background-color:#a9a9a9;
+    color:#ffffff;
+    
+
+}
+
+input[type="text"],[type="password"]
+{
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+    border-radius: 5px;
+    border:1px solid #a9a9a9;
+    height:1.5em;
+    color:#363636;
+    padding-left:5px;
+}
+
+select
+{
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+    border-radius: 5px;
+    height:1.8em;
+    border:1px solid #a9a9a9;
+    width:14.875em;
+}
+
+/* Styles for CalibrationResults
+-----------------------------------------------------------*/
+.CalibrationTblTitle {
+    color:red;
+    font-weight:bold;
+    text-decoration:underline;
+    padding-bottom: 10px;
+    width: 100%;
+}
+
+table.CalibrationTbl {
+    border:1px solid black;
+    border-spacing:0;
+}
+
+table.CalibrationTbl td,table.CalibrationTbl th{
+    width: 100px;
+    text-align: center;
+    border-top:1px solid black;
+    border-left:1px solid black;
+}
+
+table.CalibrationTbl th {
+    border-top:none;
+}
+
+table.CalibrationTbl td:first-child,table.CalibrationTbl th:first-child {
+    font-weight:bold;
+    width:60px;
+    border-left:none;
+}
+
+#ZeroSpanTbl tr:nth-of-type(n+2) td:nth-of-type(2),
+.CalibrationTbl tr:nth-of-type(n+2) td:nth-of-type(3),
+#MultipointTbl tr:nth-of-type(n+2) td:nth-of-type(4) {
+    background-color:#76a55d;
+}
+
+#ppmRange {
+    color:red;
+    margin-top:10px;
+}
+
+#ppmRange div {
+    margin-right:10px;
+    padding:5px;
+}
+
+#ppmRange div:nth-of-type(2n) {
+    font-weight:bold;
+    margin-right:50px;
+    border:1px solid black;
+    width: 60px;
+}
+
+.status-label
+{
+    font-size:1em;
+    color:green;
+    font-weight:bold;
+}

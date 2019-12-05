@@ -1,5 +1,6 @@
 ﻿@model DynamicForms.TemplateFormData
 @using DynamicForms;
+@using System.Web.Mvc;
 
 @{
     TemplateDynamicFormModel formModel = new TemplateDynamicFormModel(Model);
@@ -128,7 +129,7 @@
         {{#ifCond className '!=' "DynamicFormField"}}
         <div class="{{className}} draggable ItemBlock" id="{{id}}" child-item="{{childItem}}" draggable="true">
             <div class="TemplateItemActions">
-              <img src="images/file_edit.png" class="template-actions-btn" alt="Actions" />
+              <img src="/images/file_edit.png" class="template-actions-btn" alt="Actions" />
             </div>
         {{else}}
         <div class="{{className}} draggable ItemBlock" id="{{id}}" child-item="{{childItem}}" mIndx="{{mIndx}}" draggable="true">

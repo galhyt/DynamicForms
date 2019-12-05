@@ -14,7 +14,7 @@ namespace TestCase.Controllers
 {
     public class TestCaseController : Controller
     {
-        [DynamicFormsConfig(DataFile = "Data/DataSrc.json", FormPath = "TestCase/ExampleForm")]
+        [DynamicFormsConfig(DataFile = "Data/DataSrc.json", FormPath = "TestCase/ExampleForm", PartialViewHtmlSection = @"DynamicFormContainer")]
         public ActionResult Configuration()
         {
             TemplateFormData model = new TemplateFormData();
