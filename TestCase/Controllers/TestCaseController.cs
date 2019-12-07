@@ -14,15 +14,16 @@ namespace TestCase.Controllers
 {
     public class TestCaseController : Controller
     {
-        [DynamicFormsConfig(DataFile = "Data/DataSrc.json", FormPath = "TestCase/ExampleForm", PartialViewHtmlSection = @"DynamicFormContainer")]
+        [DynamicFormsConfig(ActionType="Load", DataFile = "Data/DataSrc.json", FormPath = "TestCase/ExampleForm", PartialViewHtmlSection = @"DynamicFormContainer")]
         public ActionResult Configuration()
         {
             TemplateFormData model = new TemplateFormData();
             return View(model);
         }
 
+        [DynamicFormsConfig(ActionType = "Save", DataFile = "Data/DataSrc.json", FormPath = "TestCase/ExampleForm")]
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult TestCaseForm(TestCaseModel model)
+        public ActionResult Configuration(TemplateFormData model)
         {
             return View(model);
         }

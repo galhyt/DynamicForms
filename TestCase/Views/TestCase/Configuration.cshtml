@@ -10,15 +10,17 @@
     <head>
     </head>
     <body>
+        @using (@Html.BeginForm("Configuration", "TestCase", FormMethod.Post))
+        {
             <div class="MaintenanceDynamicForm MaintenanceDynamicFormSection" style="overflow: auto;">
                 <div class="DynamicFormContainer">
                 </div>
                 <div class="BtnContain" >
-                    <input type="button"  id="SaveMaintenanceDynamicForm" value="Save"/>
+                    <input type="submit"  id="SaveMaintenanceDynamicForm" value="Save" />
                     <input type="button" class="CancelBtn" value="Cancel" />
                     <span style="float:right" class="status-label" id="MaintenanceDynamicFormLbl"></span>
                 </div>
             </div>
-        </div>
+        }
     </body>
 </html>

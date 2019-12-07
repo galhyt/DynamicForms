@@ -376,6 +376,16 @@ var TemplateDynamicFormConfiguration = (function () {
             $cells.each(function (indx, cell) {
                 $(cell).css('width', cellWidth + '%');
             });
+
+            row.id = row.id.replace(/\[\d+\]/i, "[" + indx + "]");
+            ["DynamicFormColumn", "DynamicFormField", "UITable"].forEach(function (propertyName) {
+                $(row).find(String.format('[id*={0}]', [propertyName])).each(function (indx1, el) {
+                    el.id = el.id.replace(/\[\d+\]/i, "[" + indx + "]");
+                    el.id = el.id.replace(/_\d+_/i, "_" + indx + "_");
+                    if (el.hasAttribute('name'))
+                        el.name = el.name.replace(/\[\d+\]/i, "[" + indx + "]");
+                });
+            });
         });
     };
     var rearangeItemIndexes = function (item) {
@@ -423,9 +433,12 @@ var TemplateDynamicFormConfiguration = (function () {
             })).max() + 1;
         }
         field.id = String.format('DynamicFormField[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]);
-        elHtmlType = $(field).find('[id$="HtmlType"]')[0];
-        elHtmlType.id = elHtmlType.id.replace(/\_\d+\_\_\d+\_\_\d+\_\_/, String.format('_{0}__{1}__{2}__', [rowIndx, colIndx, fIndx]));
-        elHtmlType.name = elHtmlType.name.replace(/\[\d+\]\[\d+\]\[\d+\]/, String.format('[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]));
+        ["HtmlType", "FieldName"].forEach(function (propertyName) {
+            var el = $(field).find('[id$="' + propertyName + '"]')[0];
+            el.id = el.id.replace(/\_\d+\_\_\d+\_\_\d+\_\_/, String.format('_{0}__{1}__{2}__', [rowIndx, colIndx, fIndx]));
+            el.name = el.name.replace(/\[\d+\]\[\d+\]\[\d+\]/, String.format('[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]));
+        })
+        
     };
     var document_click = function () {
         if (!$(event.target).hasClass('template-actions-btn') && !$(event.target).hasClass('template-html-ctrl'))
@@ -477,6 +490,7 @@ var TemplateDynamicFormConfiguration = (function () {
         var handlebarsContext = {
             'itemType': itemType,
             'fieldType': htmlTypeToFieldType[itemType],
+            'FieldName': $block(this).find('[id*="UITable"][id$="FieldName"]').val(),
             'mIndx': $block(this).attr('mIndx'),
             'rIndx': blockId.match(/\[\d+\]/g)[0].replace(/[\[\]]/g, ''),
             'cIndx': blockId.match(/\[\d+\]/g)[1].replace(/[\[\]]/g, ''),

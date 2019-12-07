@@ -15,6 +15,7 @@ namespace DynamicForms
 {
     public class DynamicFormsConfigAttribute : ActionFilterAttribute
     {
+        public string ActionType;
         public string DataFile;
         public string FormPath;
         public string PartialViewHtmlFieldPrefix;
@@ -22,20 +23,52 @@ namespace DynamicForms
 
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
+            switch (ActionType)
+            {
+                case "Load":
+                    LoadType(filterContext);
+                    break;
+
+                case "Save":
+                    SaveType(filterContext);
+                    break;
+            }
+            base.OnActionExecuted(filterContext);
+        }
+
+        private void LoadType(ActionExecutedContext filterContext)
+        {
+            var Forms = LoadFormsFromDataSrc(filterContext);
+            if (Forms[FormPath] == null) Forms.Init(FormPath);
+
+            filterContext.Controller.ViewData.Model = (object)Forms[FormPath];
+
+            OverrideView(filterContext);
+        }
+
+        private void SaveType(ActionExecutedContext filterContext)
+        {
+            var Forms = LoadFormsFromDataSrc(filterContext);
+            Forms[FormPath] = (TemplateFormData)filterContext.Controller.ViewData.Model;
+            SaveFormToDataSrc(filterContext, Forms);
+        }
+
+        private FormsTemplates LoadFormsFromDataSrc(ActionExecutedContext filterContext)
+        {
             string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
             string content = ActionFilterHelper.ReadFile(path);
             FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(content);
             if (Forms == null) Forms = new FormsTemplates();
-            Forms.Init(FormPath);
 
-            filterContext.Controller.ViewData.Model = (object)Forms[FormPath];
-            //ActionFilterHelper.SearchLocationsAdd();
-
-            OverrideView(filterContext);
-
-            base.OnActionExecuted(filterContext);
+            return Forms;
         }
 
+        private void SaveFormToDataSrc(ActionExecutedContext filterContext, FormsTemplates Forms)
+        {
+            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
+            string content = Newtonsoft.Json.JsonConvert.SerializeObject(Forms);
+            ActionFilterHelper.SaveFile(path, content);
+        }
         private void OverrideView(ActionExecutedContext filterContext)
         {
             filterContext.HttpContext.Response.Filter = new MinifyHtmlStream(filterContext, @"_TemplateDynamicFormConfiguration", PartialViewHtmlFieldPrefix, PartialViewHtmlSection);
@@ -138,6 +171,13 @@ namespace DynamicForms
             string content = myFile.ReadToEnd();
             myFile.Close();
             return content;
+        }
+
+        public static void SaveFile(string path, string content)
+        {
+            System.IO.StreamWriter myFile = new System.IO.StreamWriter(path, false);
+            myFile.Write(content);
+            myFile.Close();
         }
 
         public static void SearchLocationsAdd()

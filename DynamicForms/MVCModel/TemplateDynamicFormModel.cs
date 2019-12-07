@@ -64,7 +64,7 @@ namespace DynamicForms
         {
             int maxTitleLength = 0;
             if (row.RowCells.SelectMany(x => x.Fields).ToList().Exists(x=>x["FieldTitle"] != null))
-                maxTitleLength = row.RowCells.SelectMany(x => x.Fields).Max(x => x["FieldTitle"].ToString().Count());
+                maxTitleLength = row.RowCells.SelectMany(x => x.Fields).Where(x=> x["FieldTitle"] != null).Max(x => x["FieldTitle"].ToString().Count());
 
             int noOfCol = row.RowCells.Count();
             if (!ColomnWidthDic.ContainsKey(noOfCol)) return null;

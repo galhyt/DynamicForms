@@ -85,9 +85,10 @@
                                 @:<div class="DynamicFormField draggable ItemBlock" id="DynamicFormField[@rIndx][@cIndx][@fIndx]" mIndx="@mIndx" draggable="true">
                                     @:<div class="FormFieldTitle">@Html.TextBoxFor(m=>m.FieldsMetaData[mIndx].FieldTitle, new {@placeholder="Title", @class="FieldTitle"})</div>
                                     @:<div class="FormFieldConfigContent">
-                                        @GetFieldType(field, mIndx)
-                                        @Html.HiddenFor(m=>m.UITable[rIndx][cIndx][fIndx].HtmlType)
-                                    @:</div>
+                                    @GetFieldType(field, mIndx)
+                                    @Html.HiddenFor(m => m.UITable[rIndx][cIndx][fIndx].HtmlType)
+                                    @Html.HiddenFor(m => m.UITable[rIndx][cIndx][fIndx].FieldName)
+                                @:</div>
                                     @Html.HiddenFor(m=>m.FieldsMetaData[mIndx].FieldName)
                                 @:</div>
                             }
@@ -124,6 +125,7 @@
         <input type="{{itemType}}" class="template-html-ctrl" readonly="readonly" />
     {{/ifCond}}
     <input type="hidden" id="@Html.IdFor(m=>m.UITable[0][0][0].HtmlType).ToString().Replace("_0__0__0_", "_{{rIndx}}__{{cIndx}}__{{fIndx}}_")" name="@Html.NameFor(m=>m.UITable[0][0][0].HtmlType).ToString().Replace("[0][0][0]", "[{{rIndx}}][{{cIndx}}][{{fIndx}}]").Replace("&quot;", "\"")" value="{{itemType}}" />
+    <input type="hidden" id="@Html.IdFor(m=>m.UITable[0][0][0].FieldName).ToString().Replace("_0__0__0_", "_{{rIndx}}__{{cIndx}}__{{fIndx}}_")" name="@Html.NameFor(m=>m.UITable[0][0][0].FieldName).ToString().Replace("[0][0][0]", "[{{rIndx}}][{{cIndx}}][{{fIndx}}]").Replace("&quot;", "\"")" value="{{FieldName}}" />
 </script>
 <script id="template-dynamic-form-item" type="text/x-handlebars-template">
         {{#ifCond className '!=' "DynamicFormField"}}
@@ -152,6 +154,7 @@
             <input type="hidden" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldType).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldType).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"")" value="System.String" />
             <input type="text" class="template-html-ctrl" readonly="readonly" />
             <input type="hidden" id="@Html.IdFor(m=>m.UITable[0][0][0].HtmlType).ToString().Replace("_0__0__0_", "_{{rIndx}}__{{cIndx}}__{{fIndx}}_")" name="@Html.NameFor(m=>m.UITable[0][0][0].HtmlType).ToString().Replace("[0][0][0]", "[{{rIndx}}][{{cIndx}}][{{fIndx}}]").Replace("&quot;", "\"")" value="text" />
+            <input type="hidden" id="@Html.IdFor(m=>m.UITable[0][0][0].FieldName).ToString().Replace("_0__0__0_", "_{{rIndx}}__{{cIndx}}__{{fIndx}}_")" name="@Html.NameFor(m=>m.UITable[0][0][0].FieldName).ToString().Replace("[0][0][0]", "[{{rIndx}}][{{cIndx}}][{{fIndx}}]").Replace("&quot;", "\"")" value="{{fieldName}}" />
         </div>
         <input type="hidden" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldName).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldName).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"")" value="{{fieldName}}" />
 </script>
