@@ -6,16 +6,12 @@ using DynamicForms;
 
 namespace TestCase.Models
 {
-    public class TestCaseModel : TemplateDynamicFormModel
+    public class TestCaseModel
     {
         public string Editor_Name { get; set; }
+        public TemplateFormData Form { get; set; }
 
         public TestCaseModel()
-        {
-        }
-
-        public TestCaseModel(TemplateFormData form)
-            : base(form)
         {
         }
     }

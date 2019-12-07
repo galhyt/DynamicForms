@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 using DFFDVal = System.Collections.Generic.Dictionary<string, string>;
 using DynamicFormsFilesDictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>;
+using Newtonsoft.Json.Linq;
 
 namespace DynamicForms
 {
@@ -17,9 +18,10 @@ namespace DynamicForms
     {
         public string ActionType;
         public string DataFile;
+        public string FormsKey;
         public string FormPath;
-        public string PartialViewHtmlFieldPrefix;
         public string PartialViewHtmlSection;
+        public string ModelMember;
 
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
@@ -41,7 +43,7 @@ namespace DynamicForms
             var Forms = LoadFormsFromDataSrc(filterContext);
             if (Forms[FormPath] == null) Forms.Init(FormPath);
 
-            filterContext.Controller.ViewData.Model = (object)Forms[FormPath];
+            ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)Forms[FormPath]);
 
             OverrideView(filterContext);
         }
@@ -49,15 +51,17 @@ namespace DynamicForms
         private void SaveType(ActionExecutedContext filterContext)
         {
             var Forms = LoadFormsFromDataSrc(filterContext);
-            Forms[FormPath] = (TemplateFormData)filterContext.Controller.ViewData.Model;
+            Forms[FormPath] = (TemplateFormData)ActionFilterHelper.GetModelMember(filterContext.Controller.ViewData.Model, ModelMember);
             SaveFormToDataSrc(filterContext, Forms);
+
+            OverrideView(filterContext);
         }
 
         private FormsTemplates LoadFormsFromDataSrc(ActionExecutedContext filterContext)
         {
             string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
-            string content = ActionFilterHelper.ReadFile(path);
-            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(content);
+            JObject jsonObj = GetJsonObject(path);
+            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj.SelectToken(FormsKey)));
             if (Forms == null) Forms = new FormsTemplates();
 
             return Forms;
@@ -66,12 +70,22 @@ namespace DynamicForms
         private void SaveFormToDataSrc(ActionExecutedContext filterContext, FormsTemplates Forms)
         {
             string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
-            string content = Newtonsoft.Json.JsonConvert.SerializeObject(Forms);
+            JObject jsonObj = GetJsonObject(path);
+            JToken formsToken = jsonObj.SelectToken(FormsKey);
+            formsToken.Replace(Newtonsoft.Json.JsonConvert.DeserializeObject<JToken>(Newtonsoft.Json.JsonConvert.SerializeObject(Forms)));
+            string content = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
             ActionFilterHelper.SaveFile(path, content);
         }
+
+        private JObject GetJsonObject(string path)
+        {
+            string content = ActionFilterHelper.ReadFile(path);
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(content);
+        }
+
         private void OverrideView(ActionExecutedContext filterContext)
         {
-            filterContext.HttpContext.Response.Filter = new MinifyHtmlStream(filterContext, @"_TemplateDynamicFormConfiguration", PartialViewHtmlFieldPrefix, PartialViewHtmlSection);
+            filterContext.HttpContext.Response.Filter = new MinifyHtmlStream(filterContext, @"_TemplateDynamicFormConfiguration", PartialViewHtmlSection, ModelMember);
         }
 
     }
@@ -124,7 +138,17 @@ namespace DynamicForms
             }
         }
 
-        public static string ResultOverride(string result, UrlHelper Url, ControllerContext context, string partialViewName, string HtmlFieldPrefix, string PartialViewHtmlSection)
+        public static object GetModelMember(object model, string ModelMember)
+        {
+            return model.GetType().GetProperty(ModelMember).GetValue(model, null);
+        }
+
+        public static void SetModelMember(object model, string ModelMember, object FormData)
+        {
+            model.GetType().GetProperty(ModelMember).SetValue(model, FormData, null);
+        }
+
+        public static string ResultOverride(string result, UrlHelper Url, ControllerContext context, string partialViewName, string HtmlFieldPrefix, string PartialViewHtmlSection, string ModelMember)
         {
             string toAdd = "";
             foreach (string fileType in FilesDic.Keys)
@@ -154,7 +178,8 @@ namespace DynamicForms
             if (match.Success)
                 result = reg.Replace(result, match.Value + toAdd);
 
-            string partialViewContent = RenderPartialViewToString(partialViewName, context, context.Controller.ViewData.Model, HtmlFieldPrefix);
+            object PartialMember = GetModelMember(context.Controller.ViewData.Model, ModelMember);
+            string partialViewContent = RenderPartialViewToString(partialViewName, context, PartialMember, HtmlFieldPrefix);
 
             // Inject partial view
             reg = new Regex(string.Format(@"(?<=<(\w+)[\w\W]+class=""{0}""[\w\W]*>)[.\W]*?(?=<)", PartialViewHtmlSection.Replace("-", @"\-")));
@@ -268,24 +293,24 @@ namespace DynamicForms
         private readonly Stream FilterStream;
         private ActionExecutedContext filterContext;
         private string partialViewName;
-        private string HtmlFieldPrefix;
         private string PartialViewHtmlSection;
+        private string ModelMemebr;
 
-        public MinifyHtmlStream(ActionExecutedContext fc, string _partialViewName, string _HtmlFieldPrefix, string _PartialViewHtmlSection)
+        public MinifyHtmlStream(ActionExecutedContext fc, string _partialViewName, string _PartialViewHtmlSection, string _ModelMemebr)
         {
             BufferStream = new MemoryStream();
             filterContext = fc;
             FilterStream = filterContext.HttpContext.Response.Filter;
             partialViewName = _partialViewName;
-            HtmlFieldPrefix = _HtmlFieldPrefix;
             PartialViewHtmlSection = _PartialViewHtmlSection;
+            ModelMemebr = _ModelMemebr;
         }
 
         public override void Flush()
         {
             string result = System.Text.Encoding.UTF8.GetString(BufferStream.ToArray());
             ActionFilterHelper.AddFilesToRunEnvironment(filterContext);
-            result = ActionFilterHelper.ResultOverride(result, ((Controller)filterContext.Controller).Url, filterContext.Controller.ControllerContext, partialViewName, HtmlFieldPrefix, PartialViewHtmlSection);
+            result = ActionFilterHelper.ResultOverride(result, ((Controller)filterContext.Controller).Url, filterContext.Controller.ControllerContext, partialViewName, ModelMemebr, PartialViewHtmlSection, ModelMemebr);
             byte[] newBuffer = Encoding.UTF8.GetBytes(result);
             
             FilterStream.Write(newBuffer, 0, newBuffer.Length);
