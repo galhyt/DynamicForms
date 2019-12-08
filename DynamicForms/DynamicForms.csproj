@@ -51,6 +51,8 @@
   <ItemGroup>
     <Compile Include="Config\FormsTemplates.cs" />
     <Compile Include="DynamicFormsConfigAttribute.cs" />
+    <Compile Include="DynamicFormsHtmlHelper.cs" />
+    <Compile Include="DynamicFormsShowAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MVCModel\TemplateDynamicFormModel.cs" />
     <Compile Include="MVCModel\TemplateDynamicFormModelBinder.cs" />

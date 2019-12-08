@@ -1,0 +1,39 @@
+﻿@model TestCase.Models.TestCaseShowModel
+@using DynamicForms
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Test Case Form</title>
+</head>
+<body>
+    @using (Html.BeginForm("TestCaseShow", "TestCase", FormMethod.Post, new { @id = "form" }))
+    {
+    <div id="ReportContainer">
+        <div class="TemplateDynamicFormContainer">
+            <h1><strong>@Model.FormModel.FormTitle</strong></h1>
+                @Html.HiddenFor(m => m.FormModel.FormTitle)
+            <div style="float:left; margin-left: 1em;">
+                @Html.HiddenFor(m => m.FormModel.Date)
+                @Html.LabelForModel(Model.FormModel.Date)
+            </div>
+            <div></div>
+            <div style="float:right;margin-bottom:50px;width:100%;text-align:right;">
+                 @Html.HiddenFor(m => m.Editor_Name)
+                <b>Filled by:</b> @Html.LabelForModel(Model.Editor_Name)
+            </div>
+            <div class="DynamicFormContainer"></div>
+        </div>
+    </div>
+    <div></div>
+    <div style="float:left;">
+        <input type="submit" value="Save" id="Save" />
+        <input type="button" value="Cancel" />
+    </div>
+    }
+    <span class="status-label" style="float:right">@Model.StatusLbl</span>
+</body>
+</html>

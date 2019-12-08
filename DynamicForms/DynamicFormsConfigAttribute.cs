@@ -23,8 +23,6 @@ namespace DynamicForms
         public string PartialViewHtmlSection;
         public string ModelMember;
 
-        public StringWriter Params;
-
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
             if (FormsKey != null) FormsKey = FormsKey.Replace("/", ".");
@@ -43,7 +41,7 @@ namespace DynamicForms
 
         private void LoadType(ActionExecutedContext filterContext)
         {
-            var Forms = LoadFormsFromDataSrc(filterContext);
+            var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsKey);
             if (Forms[FormPath] == null) Forms.Init(FormPath);
 
             ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)Forms[FormPath]);
@@ -53,44 +51,11 @@ namespace DynamicForms
 
         private void SaveType(ActionExecutedContext filterContext)
         {
-            var Forms = LoadFormsFromDataSrc(filterContext);
+            var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsKey);
             Forms[FormPath] = (TemplateFormData)ActionFilterHelper.GetModelMember(filterContext.Controller.ViewData.Model, ModelMember);
-            SaveFormToDataSrc(filterContext, Forms);
+            ActionFilterHelper.SaveFormToDataSrc(filterContext, Forms, DataFile, FormsKey);
 
             OverrideView(filterContext);
-        }
-
-        private FormsTemplates LoadFormsFromDataSrc(ActionExecutedContext filterContext)
-        {
-            JToken formsToken = GetFormsKeyJsonToken(filterContext);
-            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
-            if (Forms == null) Forms = new FormsTemplates();
-
-            return Forms;
-        }
-
-        private void SaveFormToDataSrc(ActionExecutedContext filterContext, FormsTemplates Forms)
-        {
-            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
-            JObject jsonObj = GetJsonObject(path);
-            JToken formsToken = jsonObj.SelectToken(FormsKey);
-            formsToken.Replace(Newtonsoft.Json.JsonConvert.DeserializeObject<JToken>(Newtonsoft.Json.JsonConvert.SerializeObject(Forms)));
-            string content = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
-            ActionFilterHelper.SaveFile(path, content);
-        }
-
-        private JToken GetFormsKeyJsonToken(ActionExecutedContext filterContext)
-        {
-            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
-            JObject jsonObj = GetJsonObject(path);
-            JToken formsToken = jsonObj.SelectToken(FormsKey);
-            return formsToken;
-        }
-
-        private JObject GetJsonObject(string path)
-        {
-            string content = ActionFilterHelper.ReadFile(path);
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(content);
         }
 
         private void OverrideView(ActionExecutedContext filterContext)
@@ -112,10 +77,59 @@ namespace DynamicForms
                     {@"\Css\DynamicForms.css", @"\DynamicFormsExt\Css\DynamicForms.css"}}},
             {"Images", new DFFDVal{{@"\Images\file_edit.png", @"\DynamicFormsExt\Images\file_edit.png"},
                      {@"\Images\Textarea_line.png", @"\DynamicFormsExt\Images\Textarea_line.png"}}}
-            //{"Partial", new DFFDVal{{@"\PartialViews\_TemplateDynamicFormConfiguration.cshtml", @"\DynamicFormsExt\PartialViews\_TemplateDynamicFormConfiguration.cshtml"}}}
         };
 
-        public static void AddFilesToRunEnvironment(ActionExecutedContext filterContext)
+        public static TemplateFormData LoadTemplateFormFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormPath)
+        {
+            JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormPath);
+            TemplateFormData Form = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateFormData>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
+            if (Form == null) Form = new TemplateFormData();
+
+            return Form;
+        }
+
+        public static TemplateDynamicFormModel LoadFormDataFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormPath)
+        {
+            JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormPath);
+            TemplateDynamicFormModel Form = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateDynamicFormModel>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
+
+            return Form;
+        }
+
+        public static FormsTemplates LoadFormsFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormsKey)
+        {
+            JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormsKey);
+            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
+            if (Forms == null) Forms = new FormsTemplates();
+
+            return Forms;
+        }
+
+        public static void SaveFormToDataSrc(ActionExecutedContext filterContext, object Forms, string DataFile, string FormsKey)
+        {
+            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
+            JObject jsonObj = GetJsonObject(path);
+            JToken formsToken = jsonObj.SelectToken(FormsKey);
+            formsToken.Replace(Newtonsoft.Json.JsonConvert.DeserializeObject<JToken>(Newtonsoft.Json.JsonConvert.SerializeObject(Forms)));
+            string content = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
+            ActionFilterHelper.SaveFile(path, content);
+        }
+
+        private static JToken GetFormsKeyJsonToken(ActionExecutedContext filterContext, string DataFile, string FormsKey)
+        {
+            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
+            JObject jsonObj = GetJsonObject(path);
+            JToken formsToken = jsonObj.SelectToken(FormsKey);
+            return formsToken;
+        }
+
+        private static JObject GetJsonObject(string path)
+        {
+            string content = ActionFilterHelper.ReadFile(path);
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(content);
+        }
+
+        public static void AddFilesToRunEnvironment(ActionExecutedContext filterContext, string partialViewName)
         {
             string DynamicFormsProjectFolder = GetDynamicFormsProjectFolder(filterContext);
             if (DynamicFormsProjectFolder == null) return;
@@ -143,7 +157,15 @@ namespace DynamicForms
             string controllerName = filterContext.RouteData.Values["Controller"].ToString();
             try
             {
-                File.Copy(DynamicFormsProjectFolder + @"\PartialViews\_TemplateDynamicFormConfiguration.cshtml", curDir + @"Views\" + controllerName +@"\_TemplateDynamicFormConfiguration.cshtml", true);
+                string srcPath = string.Format(@"{0}\PartialViews\{1}.cshtml", DynamicFormsProjectFolder, partialViewName);
+                string trgPath = string.Format(@"{0}Views\{1}\{2}.cshtml", curDir, controllerName, partialViewName);
+                if (File.Exists(trgPath))
+                {
+                    if (File.GetLastWriteTime(srcPath) > File.GetLastWriteTime(trgPath))
+                        File.Copy(srcPath, trgPath, true);
+                }
+                else
+                    File.Copy(srcPath, trgPath, true);
             }
             catch (Exception e)
             {
@@ -180,8 +202,11 @@ namespace DynamicForms
                 }
             }
 
-            toAdd += @"<script type=""text/javascript"">" + System.Environment.NewLine +
-                    @"    $(document).ready(TemplateDynamicFormConfiguration.init);" + System.Environment.NewLine +
+            string jsCode = @"    $(document).ready(TemplateDynamicFormConfiguration.init);" + System.Environment.NewLine;
+            if (partialViewName != "_TemplateDynamicFormConfiguration")
+                jsCode = @"$(function() { $('[type=""checkbox""]').live('click', function () { " + System.Environment.NewLine + "$(this).val(($(this).is(':checked') ? 'True' : 'False'));" + System.Environment.NewLine + " });})";
+
+            toAdd += @"<script type=""text/javascript"">" + System.Environment.NewLine + jsCode + System.Environment.NewLine +
                     @"</script>" + System.Environment.NewLine;
 
             Regex reg = new Regex(@"(?<=\<head\>)[\w\W]*(?=\<\/head\>)", RegexOptions.Multiline);
@@ -286,13 +311,18 @@ namespace DynamicForms
 
             using (var sw = new StringWriter())
             {
-                var viewResult = ViewEngines.Engines.FindPartialView(context, partialViewName);
-                var viewContext = new ViewContext(context, viewResult.View, context.Controller.ViewData, context.Controller.TempData, sw);
-                viewResult.View.Render(viewContext, sw);
-                viewResult.ViewEngine.ReleaseView(context, viewResult.View);
+                try
+                {
+                    var viewResult = ViewEngines.Engines.FindPartialView(context, partialViewName);
+                    var viewContext = new ViewContext(context, viewResult.View, context.Controller.ViewData, context.Controller.TempData, sw);
+                    viewResult.View.Render(viewContext, sw);
+                    viewResult.ViewEngine.ReleaseView(context, viewResult.View);
 
-                context.Controller.ViewData = orgViewData;
-
+                    context.Controller.ViewData = orgViewData;
+                }
+                catch (Exception e)
+                {
+                }
                 return sw.GetStringBuilder().ToString();
             }
         }
@@ -321,7 +351,7 @@ namespace DynamicForms
         public override void Flush()
         {
             string result = System.Text.Encoding.UTF8.GetString(BufferStream.ToArray());
-            ActionFilterHelper.AddFilesToRunEnvironment(filterContext);
+            ActionFilterHelper.AddFilesToRunEnvironment(filterContext, partialViewName);
             result = ActionFilterHelper.ResultOverride(result, ((Controller)filterContext.Controller).Url, filterContext.Controller.ControllerContext, partialViewName, ModelMemebr, PartialViewHtmlSection, ModelMemebr);
             byte[] newBuffer = Encoding.UTF8.GetBytes(result);
             

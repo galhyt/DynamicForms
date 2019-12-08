@@ -6,14 +6,14 @@ using DynamicForms;
 
 namespace TestCase.Models
 {
-    public class TestCaseModel
+    public class TestCaseConfigModel
     {
         public string Editor_Name { get; set; }
         public TemplateFormData Form { get; set; }
         public string StatusLbl { get; set; }
 
 
-        public TestCaseModel()
+        public TestCaseConfigModel()
         {
         }
     }
