@@ -8,6 +8,12 @@
 
 <html>
     <head>
+        <script src="~/Scripts/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('.status-label').show().fadeOut(5000);
+            });
+        </script>
     </head>
     <body>
         @using (@Html.BeginForm("Configuration", "TestCase", FormMethod.Post))
@@ -16,9 +22,9 @@
                 <div class="DynamicFormContainer">
                 </div>
                 <div class="BtnContain" >
-                    <input type="submit"  id="SaveMaintenanceDynamicForm" value="Save" />
+                    <input type="submit"  id="SaveDynamicForm" value="Save" />
                     <input type="button" class="CancelBtn" value="Cancel" />
-                    <span style="float:right" class="status-label" id="MaintenanceDynamicFormLbl"></span>
+                    <span style="float:right" class="status-label">@Model.StatusLbl</span>
                 </div>
             </div>
         }

@@ -14,17 +14,18 @@ namespace TestCase.Controllers
 {
     public class TestCaseController : Controller
     {
-        [DynamicFormsConfig(ActionType="Load", DataFile = "Data/DataSrc.json", FormsKey = "DynamicForms", FormPath = "TestCase/ExampleForm", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
+        [DynamicFormsConfig(ActionType = "Load", DataFile = "Data/DataSrc.json", FormsKey = "Forms/FormsTemplates", FormPath = "TestCase/ExampleForm", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
         public ActionResult Configuration()
         {
             TestCaseModel model = new TestCaseModel();
             return View(model);
         }
 
-        [DynamicFormsConfig(ActionType = "Save", DataFile = "Data/DataSrc.json", FormsKey = "DynamicForms", FormPath = "TestCase/ExampleForm", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
+        [DynamicFormsConfig(ActionType = "Save", DataFile = "Data/DataSrc.json", FormsKey = "Forms/FormsTemplates", FormPath = "TestCase/ExampleForm", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
         [AcceptVerbs(HttpVerbs.Post)]
         public ActionResult Configuration(TestCaseModel model)
         {
+            model.StatusLbl = "Saved Successfully!";
             return View(model);
         }
 

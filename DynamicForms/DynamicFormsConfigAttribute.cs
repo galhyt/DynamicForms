@@ -23,8 +23,11 @@ namespace DynamicForms
         public string PartialViewHtmlSection;
         public string ModelMember;
 
+        public StringWriter Params;
+
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
+            if (FormsKey != null) FormsKey = FormsKey.Replace("/", ".");
             switch (ActionType)
             {
                 case "Load":
@@ -59,9 +62,8 @@ namespace DynamicForms
 
         private FormsTemplates LoadFormsFromDataSrc(ActionExecutedContext filterContext)
         {
-            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
-            JObject jsonObj = GetJsonObject(path);
-            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj.SelectToken(FormsKey)));
+            JToken formsToken = GetFormsKeyJsonToken(filterContext);
+            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
             if (Forms == null) Forms = new FormsTemplates();
 
             return Forms;
@@ -75,6 +77,14 @@ namespace DynamicForms
             formsToken.Replace(Newtonsoft.Json.JsonConvert.DeserializeObject<JToken>(Newtonsoft.Json.JsonConvert.SerializeObject(Forms)));
             string content = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj);
             ActionFilterHelper.SaveFile(path, content);
+        }
+
+        private JToken GetFormsKeyJsonToken(ActionExecutedContext filterContext)
+        {
+            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
+            JObject jsonObj = GetJsonObject(path);
+            JToken formsToken = jsonObj.SelectToken(FormsKey);
+            return formsToken;
         }
 
         private JObject GetJsonObject(string path)
@@ -99,7 +109,9 @@ namespace DynamicForms
                     {@"\Js\DynamicForms.js",@"\DynamicFormsExt\Js\DynamicForms.js"}}},
             {"Css", new DFFDVal{{@"\Css\ThirdParty\jquery.fancybox-1.3.4.css", @"\DynamicFormsExt\Css\jquery.fancybox-1.3.4.css"},
                     {@"\Css\dialog.css", @"\DynamicFormsExt\Css\dialog.css"},
-                    {@"\Css\DynamicForms.css", @"\DynamicFormsExt\Css\DynamicForms.css"}}}
+                    {@"\Css\DynamicForms.css", @"\DynamicFormsExt\Css\DynamicForms.css"}}},
+            {"Images", new DFFDVal{{@"\Images\file_edit.png", @"\DynamicFormsExt\Images\file_edit.png"},
+                     {@"\Images\Textarea_line.png", @"\DynamicFormsExt\Images\Textarea_line.png"}}}
             //{"Partial", new DFFDVal{{@"\PartialViews\_TemplateDynamicFormConfiguration.cshtml", @"\DynamicFormsExt\PartialViews\_TemplateDynamicFormConfiguration.cshtml"}}}
         };
 
@@ -172,8 +184,8 @@ namespace DynamicForms
                     @"    $(document).ready(TemplateDynamicFormConfiguration.init);" + System.Environment.NewLine +
                     @"</script>" + System.Environment.NewLine;
 
-            Regex reg = new Regex(@"(?<=\<head\>)[.\W]*(?=\<\/head\>)", RegexOptions.Multiline);
-            if (!reg.IsMatch(result)) reg = new Regex(@"(?<=\<body.*\>)[.\W]*(?=\<\/body\>)", RegexOptions.Multiline);
+            Regex reg = new Regex(@"(?<=\<head\>)[\w\W]*(?=\<\/head\>)", RegexOptions.Multiline);
+            if (!reg.IsMatch(result)) reg = new Regex(@"(?<=\<body.*\>)[\w\W]*(?=\<\/body\>)", RegexOptions.Multiline);
             Match match = reg.Match(result);
             if (match.Success)
                 result = reg.Replace(result, match.Value + toAdd);

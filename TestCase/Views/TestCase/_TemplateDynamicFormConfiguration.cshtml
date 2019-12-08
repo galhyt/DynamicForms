@@ -68,14 +68,14 @@
             }
             @:<div class="DynamicFormRow draggable ItemBlock" id="DynamicFormRow[@rIndx]" child-item="DynamicFormColumn" draggable="true">
                 @:<div class="TemplateItemActions">
-                    <img src="/images/file_edit.png" class="template-actions-btn" alt="Actions" />
+                    <img src="/DynamicFormsExt/Images/file_edit.png" class="template-actions-btn" alt="Actions" />
                 @:</div>
                 for (int cIndx = 0; cIndx < row.RowCells.Count(); cIndx++)
                 {
                     TemplateDynamicFormModelWrapper.RowCell cell = row.RowCells[cIndx];
                     @:<div class="DynamicFormColumn draggable ItemBlock" id="DynamicFormColumn[@rIndx][@cIndx]" child-item="DynamicFormField" draggable="true" style="width: @colWidth%">
                         @:<div class="TemplateItemActions">
-                            <img src="/images/file_edit.png" class="template-actions-btn" alt="Actions" />
+                            <img src="/DynamicFormsExt/Images/file_edit.png" class="template-actions-btn" alt="Actions" />
                         @:</div>
                         @:<div class="ColumnFormFields">
                             foreach (TemplateDynamicFormModelWrapper.FieldData field in cell.Fields)
@@ -131,7 +131,7 @@
         {{#ifCond className '!=' "DynamicFormField"}}
         <div class="{{className}} draggable ItemBlock" id="{{id}}" child-item="{{childItem}}" draggable="true">
             <div class="TemplateItemActions">
-              <img src="/images/file_edit.png" class="template-actions-btn" alt="Actions" />
+              <img src="/DynamicFormsExt/Images/file_edit.png" class="template-actions-btn" alt="Actions" />
             </div>
         {{else}}
         <div class="{{className}} draggable ItemBlock" id="{{id}}" child-item="{{childItem}}" mIndx="{{mIndx}}" draggable="true">

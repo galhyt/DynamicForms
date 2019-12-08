@@ -24,29 +24,6 @@ String.format = function (s, args) {
     })
     return s;
 }
-//}
-function IsURL(url) {
-    var strRegex = "^((https|http)?://)"
-        + "([0-9a-z_!~*'()-]+\.)*" // www.
-        + "([0-9a-z][0-9a-z-]{0,61})?([0-9a-z]\."
-        + "[a-z]{2,6})" // first level domain- .com or .museum
-        + "(:[0-9]{1,4})?" // :80
-        + "((/?)|" // a slash isn't required if there is no file name
-        + "(/[0-9a-z_!~*'().;?:@&=+$,%#-]+)+/?)$";
-    var re = new RegExp(strRegex);
-    return re.test(url);
-}
-function encodeImageFileAsURL(cb) {
-    return function () {
-        var self = this;
-        var file = this.files[0];
-        var reader = new FileReader();
-        reader.onloadend = function () {
-            cb.call(self, reader.result);
-        }
-        reader.readAsDataURL(file);
-    }
-}
 
 $(function () {
     if (!$.fn.live) {
@@ -239,97 +216,6 @@ var handlebarsCompile = function ($mv_chat_template, context) {
         return template(context);
 };
 
-//***** Views
-
-var Layout = (function () {
-    return {
-        init: function () {
-            try {
-                $('input').attr('dir', 'auto');
-                $('textarea').attr('dir', 'auto');
-                Layout.init_tooltip();
-                $('.logout-picture').click(Layout.logout);
-            }
-            catch (e) {
-            }
-            var check = document.createElement('div');
-            check.innerHTML = '<!--[ifIE]>1<![endif]-->';
-            if (!(document.all && check.childNodes.length)) {
-                //Chat.init();
-            } else {
-                //$('.logout-picture').click(Layout.logout);
-                //$('.userCounter').text("Chat not available with IE");
-            }
-        },
-        init_tooltip: function () {
-            $('.logout-picture').tooltip({
-                offset: [0, -45],
-                effect: 'slide',
-                position: "top"
-            });
-        },
-        logout: function () {
-            document.location = "Account/LogOut";
-        }
-    };
-})();
-var TemplateWrraper = (function () {
-    return {
-        init: function (datePickers, timeCtrls, callback) {
-            if (typeof parent.$.fancybox.saveOccured == "undefined")
-                parent.$.fancybox.saveOccured = false;
-            else
-                if (parent.$.fancybox.saveOccured) parent.$.fancybox.callbackForTemplate();
-
-            $("#Save").click(TemplateWrraper.save);
-            TemplateWrraper.init_datepicker(datePickers);
-            TemplateWrraper.init_time_ctrls(timeCtrls);
-            TemplateWrraper.init_readonly();
-            if (callback != null) callback();
-            TemplateWrraper.show_page();
-        },
-        save: function () {
-            parent.$.fancybox.saveOccured = true;
-            $("#form").submit();
-        },
-        init_time_ctrls: function (timeCtrls) {
-            if (timeCtrls == null) return;
-
-            $.mask = {
-                definitions: {
-                    '2': "[0-3]",
-                    '5': "[0-6]",
-                    '9': "[0-9]"
-                }
-            };
-            $(timeCtrls).each(function (key, val) {
-                $("#" + val).mask("29:59");
-            });
-        },
-        show_page: function () {
-            $('.status-label').fadeOut(3000);
-        },
-        init_datepicker: function (datePickers) {
-            if (datePickers == null) return;
-
-            $(datePickers).each(function (key, val) {
-                $("#" + val).datepicker({
-                    changeMonth: true,
-                    changeYear: true
-                    //dateFormat: "dd/mm/yy"
-                });
-            });
-        },
-        init_readonly: function () {
-            if ($("#readOnly").val() == "True") {
-                $("input[type=checkbox],input[type=radio]").attr({ "disabled": "disabled" });
-                $("input[type=text],input[class=inpHour] input,textarea").attr({ "readonly": "readonly" });
-            }
-        }
-
-    };
-})();
-
 var TemplateDynamicFormConfiguration = (function () {
     var getDragableClassName = function (src) {
         var className = null;
@@ -351,6 +237,7 @@ var TemplateDynamicFormConfiguration = (function () {
         ev.preventDefault();
         var srcId = ev.originalEvent.dataTransfer.getData("text");
         var src = document.getElementById(srcId);
+        var $srcCol = $(src).closest('DynamicFormColumn');
 
         var $trg = null;
         var clsName = getDragableClassName(src);
@@ -364,7 +251,6 @@ var TemplateDynamicFormConfiguration = (function () {
 
         ev.stopPropagation();
         rearangeTable();
-        rearangeItemIndexes(src);
     };
     var rearangeTable = function () {
         $('.DynamicFormRow').each(function (indx, row) {
@@ -378,14 +264,7 @@ var TemplateDynamicFormConfiguration = (function () {
             });
 
             row.id = row.id.replace(/\[\d+\]/i, "[" + indx + "]");
-            ["DynamicFormColumn", "DynamicFormField", "UITable"].forEach(function (propertyName) {
-                $(row).find(String.format('[id*={0}]', [propertyName])).each(function (indx1, el) {
-                    el.id = el.id.replace(/\[\d+\]/i, "[" + indx + "]");
-                    el.id = el.id.replace(/_\d+_/i, "_" + indx + "_");
-                    if (el.hasAttribute('name'))
-                        el.name = el.name.replace(/\[\d+\]/i, "[" + indx + "]");
-                });
-            });
+            rearangeColumnIndexes(row);
         });
     };
     var rearangeItemIndexes = function (item) {
@@ -394,51 +273,27 @@ var TemplateDynamicFormConfiguration = (function () {
         if (fn == null) return;
         fn(item);
     };
-    var rearangeColumnIndexes = function (col) {
-        $row = $(col).closest('.DynamicFormRow');
-        var colIndx = 0;
-        var $otherCols = $row.find('.DynamicFormColumn').not(String.format('[id="{0}"]', [col.id]));
-        if ($otherCols.length != 0) {
-            colIndx = $.makeArray($.map($otherCols, function (c, indx) {
-                var matches = /\[\d+(?=\]$)/.exec(c.id);
-                if (matches != null) return Number(matches[0].replace('[', ''));
-            })).max() + 1;
-        }
-
-        var rowIndx = $row.attr('id').match(/\[\d+(?=\]$)/)[0].replace('[', '');
-        col.id = String.format('DynamicFormColumn[{0}][{1}]', [rowIndx, colIndx]);
-        $(col).find('.DynamicFormField').each(function (indx1, field) {
-            var fIndx = field.id.match(/\[\d+(?=\]$)/)[0].replace('[', '');
-            field.id = String.format('DynamicFormField[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]);
-            elHtmlType = $(field).find('[id$="HtmlType"]')[0];
-            elHtmlType.id = elHtmlType.id.replace(/\_\d+\_\_\d+\_\_\d+\_\_/, String.format('_{0}__{1}__{2}__', [rowIndx, colIndx, fIndx]));
-            elHtmlType.name = elHtmlType.name.replace(/\[\d+\]\[\d+\]\[\d+\]/, String.format('[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]));
+    var rearangeColumnIndexes = function (row) {
+        var rowIndx = row.id.match(/\[\d+(?=\]$)/)[0].replace('[', '');
+        $(row).find('.DynamicFormColumn').each(function (colIndx, col) {
+            col.id = String.format('DynamicFormColumn[{0}][{1}]', [rowIndx, colIndx]);
+            rearangeFieldIndexes(col);
         });
     };
-    var rearangeFieldIndexes = function (field) {
-        $col = $(field).closest('.DynamicFormColumn');
+    var rearangeFieldIndexes = function (col) {
         // check if same column and row, if so return
-        var matches = $col.attr('id').match(/\[\d+\]/g);
+        var matches = $(col).attr('id').match(/\[\d+\]/g);
         var rowIndx = matches[0].replace(/[\[\]]/g, '');
         var colIndx = matches[1].replace(/[\[\]]/g, '');
-        var fieldIndexes = field.id.match(/\[\d+\]/g);
-        if (rowIndx == fieldIndexes[0].replace(/[\[\]]/g, '') && colIndx == fieldIndexes[1].replace(/[\[\]]/g, '')) return;
 
-        var fIndx = 0;
-        var $otherFields = $col.find('.DynamicFormField').not(String.format('[id="{0}"]', [field.id]));
-        if ($otherFields.length != 0) {
-            fIndx = $.makeArray($.map($otherFields, function (f, indx) {
-                var matches = /\[\d+(?=\]$)/.exec(f.id);
-                if (matches != null) return Number(matches[0].replace('[', ''));
-            })).max() + 1;
-        }
-        field.id = String.format('DynamicFormField[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]);
-        ["HtmlType", "FieldName"].forEach(function (propertyName) {
-            var el = $(field).find('[id$="' + propertyName + '"]')[0];
-            el.id = el.id.replace(/\_\d+\_\_\d+\_\_\d+\_\_/, String.format('_{0}__{1}__{2}__', [rowIndx, colIndx, fIndx]));
-            el.name = el.name.replace(/\[\d+\]\[\d+\]\[\d+\]/, String.format('[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]));
-        })
-        
+        $(col).find('.DynamicFormField').each(function (fIndx, field) {
+            field.id = String.format('DynamicFormField[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]);
+            ["HtmlType", "FieldName"].forEach(function (propertyName) {
+                var el = $(field).find('[id$="' + propertyName + '"]')[0];
+                el.id = el.id.replace(/\_\d+\_\_\d+\_\_\d+\_\_/, String.format('_{0}__{1}__{2}__', [rowIndx, colIndx, fIndx]));
+                el.name = el.name.replace(/\[\d+\]\[\d+\]\[\d+\]/, String.format('[{0}][{1}][{2}]', [rowIndx, colIndx, fIndx]));
+            })
+        });
     };
     var document_click = function () {
         if (!$(event.target).hasClass('template-actions-btn') && !$(event.target).hasClass('template-html-ctrl'))

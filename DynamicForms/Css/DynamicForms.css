@@ -30,8 +30,8 @@
 .TemplateDynamicFormContainer {
     border:1px solid black;
     border-spacing:0;
-    float:right;
     width:100%;
+    margin: 0 auto;
 }
 
 .TemplateDynamicFormContainer th:not(:last-of-type),#bweeklyCheckReportTbl td:not(:last-of-type) {
@@ -41,7 +41,7 @@
 .TemplateDynamicFormContainer textarea {
     width:90%;
     height: 100px;
-    background-image: url('../../Content/images/Textarea_line.png');
+    background-image: url('/DynamicFormsExt/Images/Textarea_line.png');
     background-repeat:repeat;
     border: none;
     margin-top:10px;
@@ -89,7 +89,7 @@
     margin-top: 0px;
 }
 
-.TemplateDynamicFormContainer input[type=text],.TemplateDynamicFormContainer input[type=number] {
+.TemplateDynamicFormContainer .ColumnFormFields input[type=text],.TemplateDynamicFormContainer .ColumnFormFields input[type=number] {
     height: 1em;
     width: 95%;
 }

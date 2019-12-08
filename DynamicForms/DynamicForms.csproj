@@ -57,6 +57,7 @@
     <Compile Include="Config\TemplateFormData.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Images\Textarea_line.png" />
     <Content Include="Js\ThirdParty\jquery.fancybox-1.3.4.pack.js" />
     <Content Include="Js\ThirdParty\jquery.min.js" />
     <Content Include="PartialViews\_TemplateDynamicContent.cshtml" />
