@@ -204,7 +204,7 @@ namespace DynamicForms
 
             string jsCode = @"    $(document).ready(TemplateDynamicFormConfiguration.init);" + System.Environment.NewLine;
             if (partialViewName != "_TemplateDynamicFormConfiguration")
-                jsCode = @"$(function() { $('[type=""checkbox""]').live('click', function () { " + System.Environment.NewLine + "$(this).val(($(this).is(':checked') ? 'True' : 'False'));" + System.Environment.NewLine + " });})";
+                jsCode = @"$(function() { $('.TemplateDynamicFormContainer').on('click', '[type=""checkbox""]', function () { " + System.Environment.NewLine + "$(this).val(($(this).is(':checked') ? 'true' : 'false'));" + System.Environment.NewLine + " });})";
 
             toAdd += @"<script type=""text/javascript"">" + System.Environment.NewLine + jsCode + System.Environment.NewLine +
                     @"</script>" + System.Environment.NewLine;

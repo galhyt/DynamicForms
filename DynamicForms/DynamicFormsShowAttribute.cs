@@ -47,6 +47,7 @@ namespace DynamicForms
         {
             object FormModel = ActionFilterHelper.GetModelMember(filterContext.Controller.ViewData.Model, ModelMember);
             ActionFilterHelper.SaveFormToDataSrc(filterContext, FormModel, DataFile, FormDataPath);
+            OverrideView(filterContext);
         }
 
         private void OverrideView(ActionExecutedContext filterContext)

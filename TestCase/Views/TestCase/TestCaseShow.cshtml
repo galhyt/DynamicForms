@@ -8,22 +8,38 @@
 <html>
 <head>
     <title>Test Case Form</title>
+    <style>
+        .Editor-Name {
+            float:right;
+        }
+
+        .DynamicFormContainer {
+            margin: 0 auto;
+        }
+
+        .DynamicFormContainer:before {
+            display: block;
+            content: "";
+            clear: both;
+            margin-top: 5em;
+        }
+
+    </style>
 </head>
 <body>
     @using (Html.BeginForm("TestCaseShow", "TestCase", FormMethod.Post, new { @id = "form" }))
     {
-    <div id="ReportContainer">
-        <div class="TemplateDynamicFormContainer">
-            <h1><strong>@Model.FormModel.FormTitle</strong></h1>
+    <div>
+        <div>
+            <h1 style="text-align:center;"><strong>@Model.FormModel.FormTitle</strong></h1>
                 @Html.HiddenFor(m => m.FormModel.FormTitle)
             <div style="float:left; margin-left: 1em;">
                 @Html.HiddenFor(m => m.FormModel.Date)
                 @Html.LabelForModel(Model.FormModel.Date)
             </div>
-            <div></div>
-            <div style="float:right;margin-bottom:50px;width:100%;text-align:right;">
-                 @Html.HiddenFor(m => m.Editor_Name)
+            <div class="Editor-Name">
                 <b>Filled by:</b> @Html.LabelForModel(Model.Editor_Name)
+                 @Html.TextBoxFor(m => m.Editor_Name)
             </div>
             <div class="DynamicFormContainer"></div>
         </div>

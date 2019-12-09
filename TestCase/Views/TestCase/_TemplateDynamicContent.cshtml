@@ -17,6 +17,7 @@
         text-align:left;
     }
 </style>
+<div class="TemplateDynamicFormContainer">
 @foreach (TemplateDynamicFormModelWrapper.TableRow row in FormWrapper.FormTable)
 {
     int rIndx = FormWrapper.FormTable.IndexOf(row);
@@ -48,3 +49,4 @@
     }
     @:</div>
 }
+</div>
