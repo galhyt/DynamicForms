@@ -1,4 +1,5 @@
 ﻿using DynamicForms;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace TestCase.Models
 {
     public class TestCaseShowModel : TemplateDynamicFormModel
     {
-        public string StatusLbl { get; set; }
+        public int id { get; set; }
         public string Editor_Name { get; set; }
 
         public TestCaseShowModel()
@@ -32,5 +33,9 @@ namespace TestCase.Models
             FormTitle = model.FormTitle;
             UITable = model.UITable;
         }
+
+        public override string FormDataParentPath { get; set; }
+        public override string FormDataPath { get; set; }
+        public override string FormPath { get; set; }
     }
 }

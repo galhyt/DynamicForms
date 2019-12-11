@@ -29,27 +29,28 @@
 <body>
     @using (Html.BeginForm("TestCaseShow", "TestCase", FormMethod.Post, new { @id = "form" }))
     {
-    <div>
+        @Html.HiddenFor(m=>m.id)
         <div>
-            <h1 style="text-align:center;"><strong>@Model.FormTitle</strong></h1>
-                @Html.HiddenFor(m => m.FormTitle)
-            <div style="float:left; margin-left: 1em;">
-                @Html.HiddenFor(m => m.Date)
-                @Html.LabelForModel(Model.Date)
+            <div>
+                <h1 style="text-align:center;"><strong>@Model.FormTitle</strong></h1>
+                    @Html.HiddenFor(m => m.FormTitle)
+                <div style="float:left; margin-left: 1em;">
+                    @Html.HiddenFor(m => m.Date)
+                    @Html.LabelForModel(Model.Date)
+                </div>
+                <div class="Editor-Name">
+                    <b>Filled by:</b>
+                     @Html.TextBoxFor(m => m.Editor_Name)
+                </div>
+                <div class="DynamicFormContainer"></div>
             </div>
-            <div class="Editor-Name">
-                <b>Filled by:</b>
-                 @Html.TextBoxFor(m => m.Editor_Name)
-            </div>
-            <div class="DynamicFormContainer"></div>
         </div>
-    </div>
-    <div></div>
-    <div style="float:left;">
-        <input type="submit" value="Save" id="Save" />
-        <input type="button" value="Cancel" />
-    </div>
+        <div></div>
+        <div style="float:left;">
+            <input type="submit" value="Save" id="Save" />
+            <input type="button" value="Cancel" />
+        </div>
     }
-    <span class="status-label" style="float:right">@Model.StatusLbl</span>
+    <span class="status-label" style="float:right">@ViewBag.StatusLbl</span>
 </body>
 </html>

@@ -12,14 +12,10 @@ namespace DynamicForms
     {
         public string ActionType;
         public string DataFile;
-        public string FormDataPath;
-        public string NewFormPath;
         public string PartialViewHtmlSection;
 
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
-            if (NewFormPath != null) NewFormPath = NewFormPath.Replace("/", ".");
-            if (FormDataPath != null) FormDataPath = FormDataPath.Replace("/", ".");
             switch (ActionType)
             {
                 case "Load":
@@ -36,20 +32,24 @@ namespace DynamicForms
 
         private void LoadForm(ActionExecutedContext filterContext)
         {
-            JObject FormModel = ActionFilterHelper.LoadFormDataFromDataSrc(filterContext, DataFile, FormDataPath);
+            TemplateDynamicFormModel model = (TemplateDynamicFormModel)filterContext.Controller.ViewData.Model;
+            JObject FormModel = ActionFilterHelper.LoadFormDataFromDataSrc(filterContext, DataFile, model.FormDataPath);
             
-            if (FormModel != null)
+            if (FormModel == null)
             {
-                ((TemplateDynamicFormModel)filterContext.Controller.ViewData.Model).CastFromJObject(FormModel);
+                TemplateFormData templateForm = ActionFilterHelper.LoadTemplateFormFromDataSrc(filterContext, DataFile, model.FormPath);
+                if (templateForm != null)
+                    FormModel =  Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(Newtonsoft.Json.JsonConvert.SerializeObject(new TemplateDynamicFormModel(templateForm)));
             }
 
+            model.CastFromJObject(FormModel);
             OverrideView(filterContext);
         }
 
         private void SaveForm(ActionExecutedContext filterContext)
         {
-            object FormModel = filterContext.Controller.ViewData.Model;
-            ActionFilterHelper.SaveFormToDataSrc(filterContext, FormModel, DataFile, FormDataPath);
+            TemplateDynamicFormModel FormModel = (TemplateDynamicFormModel)filterContext.Controller.ViewData.Model;
+            ActionFilterHelper.SaveFormToDataSrc(filterContext, FormModel, DataFile, FormModel.FormDataPath);
             OverrideView(filterContext);
         }
 

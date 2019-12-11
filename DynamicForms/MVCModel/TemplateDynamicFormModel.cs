@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +9,18 @@ using System.Web.Mvc;
 
 namespace DynamicForms
 {
+    public interface IActionFilterAttributes
+    {
+        [JsonIgnore]
+        string FormDataParentPath { get; set; }
+        [JsonIgnore]
+        string FormDataPath { get; set; }
+        [JsonIgnore]
+        string FormPath { get; set; }
+    }
+
     [ModelBinder(typeof(TemplateDynamicFormModelBinder))]
-    public class TemplateDynamicFormModel
+    public class TemplateDynamicFormModel : IActionFilterAttributes
     {
         public string FormTitle { get; set; }
         public string Date { get; set; }
@@ -17,7 +28,10 @@ namespace DynamicForms
         public List<List<List<TemplateFormData.FieldUIData>>> UITable { get; set; }
         public List<FormDataEntry> FormData { get; set; } // for serialization purpose
 
-        public virtual void CastFromJObject(JObject baseModel) { }
+        public virtual void CastFromJObject(JObject baseModel) {}
+        public virtual string FormDataParentPath { get; set; }
+        public virtual string FormDataPath { get; set; }
+        public virtual string FormPath { get; set; }
 
         public TemplateDynamicFormModel()
         {

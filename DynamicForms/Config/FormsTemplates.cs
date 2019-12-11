@@ -43,7 +43,7 @@ namespace DynamicForms
 
         private string[] GetPathElements(string path)
         {
-            string[] keys = path.Split('/');
+            string[] keys = path.Split('.');
             if (keys.Count() != 2) return null;
 
             return keys;
