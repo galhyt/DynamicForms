@@ -99,7 +99,7 @@ namespace DynamicForms
         public static FormsTemplates LoadFormsFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormsKey)
         {
             JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormsKey);
-            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
+            FormsTemplates Forms = formsToken.ToObject<FormsTemplates>(); // Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
             if (Forms == null) Forms = new FormsTemplates();
 
             return Forms;

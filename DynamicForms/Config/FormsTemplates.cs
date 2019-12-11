@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace DynamicForms
 {
-    public class FormsTemplates : Dictionary<string, Dictionary<string, TemplateFormData>>
+    public class FormsTemplates : Dictionary<string, object>
     {
         public TemplateFormData this[string path]
         {
@@ -16,9 +17,7 @@ namespace DynamicForms
             set
             {
                 CreateIfNotExist(path);
-                string[] keys = GetPathElements(path);
-                if (keys == null) return;
-                base[keys[0]][keys[1]] = value;
+                SetTemplateFormData(path, value);
             }
         }
 
@@ -32,31 +31,83 @@ namespace DynamicForms
             });
         }
 
+        private void _SetTemplateFormData(string[] keys, Dictionary<string, object> dic, TemplateFormData value)
+        {
+            if (!dic.ContainsKey(keys[0])) return;
+            Dictionary<string, object> _dic = null;
+            if (dic[keys[0]].GetType() == typeof(JObject))
+                _dic = ((JObject)dic[keys[0]]).ToObject<Dictionary<string, object>>();
+            else
+                _dic = (Dictionary<string, object>)dic[keys[0]];
+            if (keys.Count() > 1) _SetTemplateFormData(keys.Skip(1).ToArray(), _dic, value);
+            dic[keys[0]] = value;
+        }
+
+        private void SetTemplateFormData(string path, TemplateFormData value)
+        {
+            string[] keys = GetPathElements(path);
+            if (keys == null) return;
+
+            _SetTemplateFormData(keys, this, value);
+        }
+
+        private object _GetTemplateFormData(string[] keys, Dictionary<string, object> dic)
+        {
+            if (!dic.ContainsKey(keys[0])) return null;
+            if (keys.Count() == 1) {
+                if (dic[keys[0]].GetType() == typeof(TemplateFormData)) return dic[keys[0]];
+                if (dic[keys[0]].GetType() == typeof(JObject)) return ((JObject)dic[keys[0]]).ToObject<TemplateFormData>();
+                return null;
+            }
+
+            Dictionary<string, object> _dic = null;
+            if (dic[keys[0]].GetType() == typeof(JObject))
+                _dic = ((JObject)dic[keys[0]]).ToObject<Dictionary<string, object>>();
+            else
+                _dic = (Dictionary<string, object>)dic[keys[0]];
+
+            return _GetTemplateFormData(keys.Skip(1).ToArray(), _dic);
+        }
+        
         private TemplateFormData GetTemplateFormData(string path)
         {
             string[] keys = GetPathElements(path);
             if (keys == null) return null;
-            if (!this.ContainsKey(keys[0])) return null;
-            if (!base[keys[0]].ContainsKey(keys[1])) return null;
-            return base[keys[0]][keys[1]];
+
+            return (TemplateFormData)_GetTemplateFormData(keys, this);
         }
 
         private string[] GetPathElements(string path)
         {
             string[] keys = path.Split('.');
-            if (keys.Count() != 2) return null;
+            if (keys.Count() == 0) return null;
 
             return keys;
+        }
+
+        private void _CreateIfNotExist(string[] keys, Dictionary<string, object> dic)
+        {
+            if (!dic.ContainsKey(keys[0]))
+            {
+                object val = null;
+                if (keys.Count() > 1) val = new Dictionary<string, object>();
+                dic.Add(keys[0], val);
+            }
+
+            Dictionary<string, object> _dic = null;
+            if (dic[keys[0]].GetType() == typeof(JObject))
+                _dic = ((JObject)dic[keys[0]]).ToObject<Dictionary<string, object>>();
+            else
+                _dic = (Dictionary<string, object>)dic[keys[0]];
+            if (keys.Count() > 1) _CreateIfNotExist(keys.Skip(1).ToArray(), _dic);
         }
 
         private void CreateIfNotExist(string path)
         {
             string[] keys = GetPathElements(path);
             if (keys == null) return;
-            if (!base.ContainsKey(keys[0]))
-                base.Add(keys[0], new Dictionary<string, TemplateFormData>());
-            if (!base[keys[0]].ContainsKey(keys[1]))
-                base[keys[0]].Add(keys[1], null);
+
+            _CreateIfNotExist(keys, this);
         }
     }
 
