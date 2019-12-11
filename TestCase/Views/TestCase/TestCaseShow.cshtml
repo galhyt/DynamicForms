@@ -31,14 +31,14 @@
     {
     <div>
         <div>
-            <h1 style="text-align:center;"><strong>@Model.FormModel.FormTitle</strong></h1>
-                @Html.HiddenFor(m => m.FormModel.FormTitle)
+            <h1 style="text-align:center;"><strong>@Model.FormTitle</strong></h1>
+                @Html.HiddenFor(m => m.FormTitle)
             <div style="float:left; margin-left: 1em;">
-                @Html.HiddenFor(m => m.FormModel.Date)
-                @Html.LabelForModel(Model.FormModel.Date)
+                @Html.HiddenFor(m => m.Date)
+                @Html.LabelForModel(Model.Date)
             </div>
             <div class="Editor-Name">
-                <b>Filled by:</b> @Html.LabelForModel(Model.Editor_Name)
+                <b>Filled by:</b>
                  @Html.TextBoxFor(m => m.Editor_Name)
             </div>
             <div class="DynamicFormContainer"></div>

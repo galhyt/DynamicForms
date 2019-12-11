@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,8 @@ namespace DynamicForms
         public List<TemplateFormData.FieldMetaData> FieldsMetaData { get; set; }
         public List<List<List<TemplateFormData.FieldUIData>>> UITable { get; set; }
         public List<FormDataEntry> FormData { get; set; } // for serialization purpose
+
+        public virtual void CastFromJObject(JObject baseModel) { }
 
         public TemplateDynamicFormModel()
         {

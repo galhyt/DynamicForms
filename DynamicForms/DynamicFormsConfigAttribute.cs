@@ -18,14 +18,14 @@ namespace DynamicForms
     {
         public string ActionType;
         public string DataFile;
-        public string FormsKey;
+        public string FormsTemplatesPath;
         public string FormPath;
         public string PartialViewHtmlSection;
         public string ModelMember;
 
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
-            if (FormsKey != null) FormsKey = FormsKey.Replace("/", ".");
+            if (FormsTemplatesPath != null) FormsTemplatesPath = FormsTemplatesPath.Replace("/", ".");
             switch (ActionType)
             {
                 case "Load":
@@ -41,7 +41,7 @@ namespace DynamicForms
 
         private void LoadType(ActionExecutedContext filterContext)
         {
-            var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsKey);
+            var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsTemplatesPath);
             if (Forms[FormPath] == null) Forms.Init(FormPath);
 
             ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)Forms[FormPath]);
@@ -51,9 +51,9 @@ namespace DynamicForms
 
         private void SaveType(ActionExecutedContext filterContext)
         {
-            var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsKey);
+            var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsTemplatesPath);
             Forms[FormPath] = (TemplateFormData)ActionFilterHelper.GetModelMember(filterContext.Controller.ViewData.Model, ModelMember);
-            ActionFilterHelper.SaveFormToDataSrc(filterContext, Forms, DataFile, FormsKey);
+            ActionFilterHelper.SaveFormToDataSrc(filterContext, Forms, DataFile, FormsTemplatesPath);
 
             OverrideView(filterContext);
         }
@@ -82,16 +82,16 @@ namespace DynamicForms
         public static TemplateFormData LoadTemplateFormFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormPath)
         {
             JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormPath);
-            TemplateFormData Form = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateFormData>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
+            TemplateFormData Form = formsToken.ToObject<TemplateFormData>();
             if (Form == null) Form = new TemplateFormData();
 
             return Form;
         }
 
-        public static TemplateDynamicFormModel LoadFormDataFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormPath)
+        public static JObject LoadFormDataFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormPath)
         {
             JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormPath);
-            TemplateDynamicFormModel Form = Newtonsoft.Json.JsonConvert.DeserializeObject<TemplateDynamicFormModel>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
+            JObject Form = formsToken.ToObject<JObject>();
 
             return Form;
         }
@@ -215,7 +215,10 @@ namespace DynamicForms
             if (match.Success)
                 result = reg.Replace(result, match.Value + toAdd);
 
-            object PartialMember = GetModelMember(context.Controller.ViewData.Model, ModelMember);
+            object PartialMember = context.Controller.ViewData.Model;
+            if (ModelMember != null)
+                PartialMember = GetModelMember(context.Controller.ViewData.Model, ModelMember);
+            
             string partialViewContent = RenderPartialViewToString(partialViewName, context, PartialMember, HtmlFieldPrefix);
 
             // Inject partial view
