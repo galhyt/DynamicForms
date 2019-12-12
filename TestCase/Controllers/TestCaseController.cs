@@ -16,10 +16,16 @@ namespace TestCase.Controllers
     public class TestCaseController : Controller
     {
         [DynamicFormsConfig(ActionType = "Load", DataFile = "Data/DataSrc.json", FormsTemplatesPath = "Forms.FormsTemplates", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
-        public ActionResult Configuration()
+        public ActionResult Configuration(string FormPath = "TestCase")
         {
             TestCaseConfigModel model = new TestCaseConfigModel();
-            model.FormPath = "TestCase.ExampleForm";
+            model.FormPath = FormPath;
+            string[] keys = FormPath.Split('.');
+            if (keys != null)
+            {
+                if (keys.Count() > 0) model.FormCategory = keys[0];
+                if (keys.Count() > 1) model.FormSubCategory = keys[1];
+            }
             return View(model);
         }
 
@@ -27,7 +33,6 @@ namespace TestCase.Controllers
         [AcceptVerbs(HttpVerbs.Post)]
         public ActionResult Configuration(TestCaseConfigModel model)
         {
-            model.FormPath = "TestCase.ExampleForm";
             ViewBag.StatusLbl = "Saved Successfully!";
             return View(model);
         }

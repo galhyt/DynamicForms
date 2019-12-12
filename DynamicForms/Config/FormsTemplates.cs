@@ -96,7 +96,7 @@ namespace DynamicForms
             }
 
             Dictionary<string, object> _dic = null;
-            if (dic[keys[0]].GetType() == typeof(JObject))
+            if (dic[keys[0]] != null && dic[keys[0]].GetType() == typeof(JObject))
                 _dic = ((JObject)dic[keys[0]]).ToObject<Dictionary<string, object>>();
             else
                 _dic = (Dictionary<string, object>)dic[keys[0]];

@@ -1,6 +1,7 @@
 ﻿@model TestCase.Models.TestCaseConfigModel
 @using System.Text.RegularExpressions;
 @using DynamicForms;
+@using TestCase.Models;
 
 @{
     Layout = null;
@@ -10,15 +11,39 @@
     <head>
         <script src="~/Scripts/jquery-1.8.2.min.js"></script>
         <script type="text/javascript">
+            @{var Content = Newtonsoft.Json.JsonConvert.SerializeObject(TestCaseConfigModel.FormsHeirarchy);
+              Content = Content.Replace(@"""", @"\""");}
+            var FormsHeirarchy = $.parseJSON("@Html.Raw(Content)");
             $(document).ready(function () {
                 $('.status-label').show().fadeOut(5000);
+                $('#FormCategory').change(function () {
+                    $('#FormSubCategory option').not(':first-of-type').remove();
+                    FormsHeirarchy[$(this).find('option:selected').val()].forEach(function (subCat, indx) {
+                        $('#FormSubCategory').append(String.format('<option value="{0}">{0}</option>', [subCat]));
+                    });
+                });
+
+                $('#FormSubCategory').change(function () {
+                    var FormPath = $('#FormCategory').find('option:selected').val() + "." + $(this).find('option:selected').val();
+                    document.location.href = document.location.href.replace(/\?FormPath=[\w\W]*(?=\&|$)|$/, "?FormPath=" + FormPath);
+                });
             });
         </script>
     </head>
     <body>
         @using (@Html.BeginForm("Configuration", "TestCase", FormMethod.Post))
         {
-            <div class="MaintenanceDynamicForm MaintenanceDynamicFormSection" style="overflow: auto;">
+            List<SelectListItem> subCategories = new List<SelectListItem>();
+            if (Model.FormCategory != null && Model.FormCategory != "" && TestCaseConfigModel.FormsHeirarchy.ContainsKey(Model.FormCategory))
+            {
+                subCategories = TestCaseConfigModel.FormsHeirarchy[Model.FormCategory].Select(x=> new SelectListItem{Text=x, Value=x}).ToList();
+            }
+            <div style="overflow: auto;">
+                <div>
+                    Category: @Html.DropDownListFor(m=>m.FormCategory, TestCaseConfigModel.FormsHeirarchy.Keys.Select(x=> new SelectListItem{Text=x, Value=x}), "- Select Category -")
+                    Sub Category: @Html.DropDownListFor(m=>m.FormSubCategory, subCategories, "- Select Sub Category -")
+                    @Html.HiddenFor(m=>m.FormPath)
+                </div>
                 <div class="DynamicFormContainer">
                 </div>
                 <div class="BtnContain" >

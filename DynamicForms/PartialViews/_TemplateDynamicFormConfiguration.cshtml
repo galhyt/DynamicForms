@@ -148,7 +148,7 @@
 </script>
 <script id="template-dynamic-form-field" type="text/x-handlebars-template">
         <div class="FormFieldTitle">
-            <input type="text" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldTitle).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldTitle).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"") placeholder="Title" class="FieldTitle" />
+            <input type="text" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldTitle).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldTitle).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"") placeholder="Title" class="FieldTitle" value="" />
         </div>
         <div class="FormFieldConfigContent">
             <input type="hidden" id="@Html.IdFor(m=>m.FieldsMetaData[0].FieldType).ToString().Replace("_0_", "_{{mIndx}}_")" name="@Html.NameFor(m=>m.FieldsMetaData[0].FieldType).ToString().Replace("[0]", "[{{mIndx}}]").Replace("&quot;", "\"")" value="System.String" />
