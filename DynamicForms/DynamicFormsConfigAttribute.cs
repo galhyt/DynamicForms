@@ -51,7 +51,7 @@ namespace DynamicForms
         private void SaveType(ActionExecutedContext filterContext)
         {
             string FormPath = ((IActionFilterAttributes)filterContext.Controller.ViewData.Model).FormPath;
-            var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsTemplatesPath);
+            FormsTemplates Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsTemplatesPath);
             Forms[FormPath] = (TemplateFormData)ActionFilterHelper.GetModelMember(filterContext.Controller.ViewData.Model, ModelMember);
             ActionFilterHelper.SaveFormToDataSrc(filterContext, Forms, DataFile, FormsTemplatesPath);
 
@@ -99,7 +99,7 @@ namespace DynamicForms
         public static FormsTemplates LoadFormsFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormsKey)
         {
             JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormsKey);
-            FormsTemplates Forms = formsToken.ToObject<FormsTemplates>(); // Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
+            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
             if (Forms == null) Forms = new FormsTemplates();
 
             return Forms;

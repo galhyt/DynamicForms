@@ -31,16 +31,17 @@ namespace DynamicForms
             });
         }
 
-        private void _SetTemplateFormData(string[] keys, Dictionary<string, object> dic, TemplateFormData value)
+        private void _SetTemplateFormData(string[] keys, object dic, TemplateFormData value)
         {
-            if (!dic.ContainsKey(keys[0])) return;
-            Dictionary<string, object> _dic = null;
-            if (dic[keys[0]].GetType() == typeof(JObject))
-                _dic = ((JObject)dic[keys[0]]).ToObject<Dictionary<string, object>>();
+            if (dic.GetType() != typeof(Dictionary<string, object>) && dic.GetType() != typeof(FormsTemplates)) return;
+            if (keys.Count() > 1)
+            {
+                if (!((Dictionary<string, object>)dic).ContainsKey(keys[0])) return;
+                ((Dictionary<string, object>)dic)[keys[0]] = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(Newtonsoft.Json.JsonConvert.SerializeObject(((Dictionary<string, object>)dic)[keys[0]]));
+                _SetTemplateFormData(keys.Skip(1).ToArray(), ((Dictionary<string, object>)dic)[keys[0]], value);
+            }
             else
-                _dic = (Dictionary<string, object>)dic[keys[0]];
-            if (keys.Count() > 1) _SetTemplateFormData(keys.Skip(1).ToArray(), _dic, value);
-            dic[keys[0]] = value;
+                ((Dictionary<string, object>)dic)[keys[0]] = value;
         }
 
         private void SetTemplateFormData(string path, TemplateFormData value)
