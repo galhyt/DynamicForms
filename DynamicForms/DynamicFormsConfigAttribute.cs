@@ -14,13 +14,83 @@ using Newtonsoft.Json.Linq;
 
 namespace DynamicForms
 {
+    public interface IDynamicFormsConfigDataSrc
+    {
+        object Find(string[] Params);
+        bool Save(object value, string[] Params);
+    }
+
+    public class JsonDataSrc : IDynamicFormsConfigDataSrc
+    {
+        public object Find(string[] Params)
+        {
+            string DataConnection = Params[0];
+            string FormsTemplatesPath = Params[1];
+            string FormPath = Params[2];
+
+            return LoadFormsFromDataSrc(DataConnection, FormsTemplatesPath);
+        }
+
+        public bool Save(object value, string[] Params)
+        {
+
+        }
+
+        private FormsTemplates LoadFormsFromDataSrc(string DataFile, string FormsKey)
+        {
+            JToken formsToken = GetFormsKeyJsonToken(DataFile, FormsKey);
+            FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
+            if (Forms == null) Forms = new FormsTemplates();
+
+            return Forms;
+        }
+
+        private JToken GetFormsKeyJsonToken(string DataFile, string FormsKey)
+        {
+            string path = HttpContext.Current.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
+            JObject jsonObj = GetJsonObject(path);
+            JToken formsToken = jsonObj.SelectToken(FormsKey);
+            return formsToken;
+        }
+
+        private static JObject GetJsonObject(string path)
+        {
+            string content = ActionFilterHelper.ReadFile(path);
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(content);
+        }
+    }
+
+    public static class Datafactory
+    {
+        public static IDynamicFormsConfigDataSrc GetDataConfig(string LibraryPath)
+        {
+            //if (LibraryPath == null)
+                return new JsonDataSrc();
+        }
+    }
     public class DynamicFormsConfigAttribute : ActionFilterAttribute
     {
         public string ActionType;
+        public string LibraryPath;
         public string DataFile;
         public string FormsTemplatesPath;
         public string PartialViewHtmlSection;
         public string ModelMember;
+
+        private static IDynamicFormsConfigDataSrc _DataSrc;
+        private IDynamicFormsConfigDataSrc DataSrc
+        {
+            get
+            {
+                if (_DataSrc == null)
+                {
+                    _DataSrc = Datafactory.GetDataConfig(LibraryPath);
+                }
+                return _DataSrc;
+            }
+
+            set { }
+        }
 
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
@@ -39,12 +109,13 @@ namespace DynamicForms
 
         private void LoadType(ActionExecutedContext filterContext)
         {
-            string FormPath = ((IActionFilterAttributes)filterContext.Controller.ViewData.Model).FormPath;
-            var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsTemplatesPath);
-            if (Forms[FormPath] == null) Forms.Init(FormPath);
+            //string FormPath = ((IActionFilterAttributes)filterContext.Controller.ViewData.Model).FormPath;
+            //var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsTemplatesPath);
+            //if (Forms[FormPath] == null) Forms.Init(FormPath);
 
-            ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)Forms[FormPath]);
 
+            //ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)Forms[FormPath]);
+            ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)DataSrc.Find(((IActionFilterAttributes)filterContext.Controller.ViewData.Model).DataConfigParams));
             OverrideView(filterContext);
         }
 

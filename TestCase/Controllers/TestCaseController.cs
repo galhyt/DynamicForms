@@ -15,7 +15,7 @@ namespace TestCase.Controllers
 {
     public class TestCaseController : Controller
     {
-        [DynamicFormsConfig(ActionType = "Load", DataFile = "Data/DataSrc.json", FormsTemplatesPath = "Forms.FormsTemplates", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
+        [DynamicFormsConfig(ActionType = "Load", DataConnection = "Data/DataSrc.json", DataParams = "FormsTemplatesPath=\"Forms.FormsTemplates\"", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
         public ActionResult Configuration(string FormPath = "TestCase")
         {
             TestCaseConfigModel model = new TestCaseConfigModel();
@@ -29,7 +29,7 @@ namespace TestCase.Controllers
             return View(model);
         }
 
-        [DynamicFormsConfig(ActionType = "Save", DataFile = "Data/DataSrc.json", FormsTemplatesPath = "Forms.FormsTemplates", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
+        [DynamicFormsConfig(ActionType = "Save", DataConnection = "Data/DataSrc.json", DataParams="FormsTemplatesPath=\"Forms.FormsTemplates\"", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
         [AcceptVerbs(HttpVerbs.Post)]
         public ActionResult Configuration(TestCaseConfigModel model)
         {
