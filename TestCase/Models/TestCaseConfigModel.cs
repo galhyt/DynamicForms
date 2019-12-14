@@ -15,7 +15,6 @@ namespace TestCase.Models
             {"Supplier", new List<string> {"OrderDetails", "ReturnCertificate"}}
         };
 
-        public string Editor_Name { get; set; }
         public TemplateFormData Form { get; set; }
         [JsonIgnore]
         public string FormCategory { get; set; }
