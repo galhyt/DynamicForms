@@ -31,8 +31,9 @@ namespace TestCase.Controllers
 
         [DynamicFormsConfig(ActionType = "Save", DataFile = "Data/DataSrc.json", FormsTemplatesPath = "Forms.FormsTemplates", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult Configuration(TestCaseConfigModel model)
+        public ActionResult ConfigurationAjax([ModelBinder(typeof(TestCaseConfigModelBinder))]TestCaseConfigModel model)
         {
+            //TestCaseConfigModel _model = Newtonsoft.Json.JsonConvert.DeserializeObject<TestCaseConfigModel>(model);
             ViewBag.StatusLbl = "Saved Successfully!";
             return View(model);
         }

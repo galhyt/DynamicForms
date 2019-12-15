@@ -4,9 +4,27 @@ using System.Linq;
 using System.Web;
 using DynamicForms;
 using Newtonsoft.Json;
+using System.Web.Mvc;
+using System.Text.RegularExpressions;
 
 namespace TestCase.Models
 {
+    public class TestCaseConfigModelBinder : DefaultModelBinder
+    {
+        public override object BindModel(ControllerContext controllerContext, ModelBindingContext bindingContext)
+        {
+            string content = ((string[])((ValueProviderCollection)bindingContext.ValueProvider).ToList()[1].GetValue("model").RawValue)[0];
+            TestCaseConfigModel model = Newtonsoft.Json.JsonConvert.DeserializeObject<TestCaseConfigModel>(content);
+
+            Regex reg = new Regex(@"(?<=""FormPath"":"")[\w\W]+(?="")");
+            Match m = reg.Match(content);
+            if (m.Success) model.FormPath = m.Value;
+
+            return model;
+        }
+    }
+
+    
     public class TestCaseConfigModel : IActionFilterAttributes
     {
         public static Dictionary<string, List<string>> FormsHeirarchy= new Dictionary<string, List<string>>
@@ -16,9 +34,7 @@ namespace TestCase.Models
         };
 
         public TemplateFormData Form { get; set; }
-        [JsonIgnore]
         public string FormCategory { get; set; }
-        [JsonIgnore]
         public string FormSubCategory { get; set; }
 
         public string FormDataParentPath { get; set; }
