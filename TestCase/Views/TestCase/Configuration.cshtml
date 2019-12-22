@@ -9,7 +9,31 @@
 
 <html>
     <head>
-        <script src="~/Scripts/jquery-1.8.2.min.js"></script>
+    </head>
+    <body>
+        @Html.HiddenFor(m=>m.DataCreteria)
+        @Html.HiddenFor(m=>m.FormDataParentPath)
+        @Html.HiddenFor(m=>m.FormDataPath)
+        @{List<SelectListItem> subCategories = new List<SelectListItem>();
+            if (Model.FormCategory != null && Model.FormCategory != "" && TestCaseConfigModel.FormsHeirarchy.ContainsKey(Model.FormCategory))
+            {
+                subCategories = TestCaseConfigModel.FormsHeirarchy[Model.FormCategory].Select(x => new SelectListItem { Text = x, Value = x }).ToList();
+            }
+        }
+        <div style="overflow: auto;">
+            <div>
+                Category: @Html.DropDownListFor(m=>m.FormCategory, TestCaseConfigModel.FormsHeirarchy.Keys.Select(x=> new SelectListItem{Text=x, Value=x}), "- Select Category -")
+                Sub Category: @Html.DropDownListFor(m=>m.FormSubCategory, subCategories, "- Select Sub Category -")
+                @Html.HiddenFor(m=>m.DataCreteria)
+            </div>
+            <div class="DynamicFormContainer">
+            </div>
+            <div class="BtnContain" >
+                <input type="submit"  id="SaveDynamicForm" value="Save" />
+                <input type="button" class="CancelBtn" value="Cancel" />
+                <span style="float:right" class="status-label"></span>
+            </div>
+        </div>
         <script type="text/javascript">
             @{var Content = Newtonsoft.Json.JsonConvert.SerializeObject(TestCaseConfigModel.FormsHeirarchy);
                 Content = Content.Replace(@"""", @"\""");}
@@ -28,58 +52,33 @@
                     document.location.href = document.location.href.replace(/\?FormPath=[\w\W]*(?=\&|$)|$/, "?FormPath=" + FormPath);
                 });
 
-                //$('#SaveDynamicForm').click(function () {
-                //    var data = {
-                //        Form: TemplateDynamicFormConfiguration.configurationToJson(),
-                //        FormPath: $('#FormPath').val(),
-                //        FormCategory:$('#FormCategory').val(),
-                //        FormSubCategory:$('#FormSubCategory').val(),
-                //        FormDataParentPath:$('#FormDataParentPath').val(),
-                //        FormDataPath:$('#FormDataPath').val(),
-                //    };
+                $('#SaveDynamicForm').click(function () {
+                    var data = {
+                        Form: TemplateDynamicFormConfiguration.configurationToJson(),
+                        FormCategory:$('#FormCategory').val(),
+                        FormSubCategory:$('#FormSubCategory').val(),
+                        FormDataParentPath: $('#FormDataParentPath').val(),
+                        FormDataPath:$('#FormDataPath').val(),
+                        FormPath: $('#FormPath').val()
+                    };
 
-                //    $.ajax({
-                //        url: '/TestCase/Configuration',
-                //        method: 'POST',
-                //        dataType: "json",
-                //        contextType: "application/json",
-                //        traditional: true,
-                //        data: { model: JSON.stringify(data) },
-                //        cache: false,
-                //        success: function (data) {
-                //            $('.status-label').fadeOut(5000).text(data.responseText);
-                //        },
-                //        error: function (data) {
-                //            $('.status-label').fadeOut(5000).text(data.responseText);
-                //        }
-                //    });
-                //});
+                    $.ajax({
+                        url: '/TestCase/ConfigurationAjax',
+                        method: 'POST',
+                        dataType: "json",
+                        contextType: "application/json",
+                        traditional: true,
+                        data: { model: JSON.stringify(data) },
+                        cache: false,
+                        success: function (data) {
+                            $('.status-label').fadeOut(5000).text(data.responseText);
+                        },
+                        error: function (data) {
+                            $('.status-label').fadeOut(5000).text(data.responseText);
+                        }
+                    });
+                });
             });
         </script>
-    </head>
-    <body>
-        @using (@Html.BeginForm("Configuration", "TestCase", FormMethod.Post))
-        {
-            @{List<SelectListItem> subCategories = new List<SelectListItem>();
-                if (Model.FormCategory != null && Model.FormCategory != "" && TestCaseConfigModel.FormsHeirarchy.ContainsKey(Model.FormCategory))
-                {
-                    subCategories = TestCaseConfigModel.FormsHeirarchy[Model.FormCategory].Select(x => new SelectListItem { Text = x, Value = x }).ToList();
-                }
-            }
-            <div style="overflow: auto;">
-                <div>
-                    Category: @Html.DropDownListFor(m=>m.FormCategory, TestCaseConfigModel.FormsHeirarchy.Keys.Select(x=> new SelectListItem{Text=x, Value=x}), "- Select Category -")
-                    Sub Category: @Html.DropDownListFor(m=>m.FormSubCategory, subCategories, "- Select Sub Category -")
-                    @Html.HiddenFor(m=>m.FormPath)
-                </div>
-                <div class="DynamicFormContainer">
-                </div>
-                <div class="BtnContain" >
-                    <input type="submit"  id="SaveDynamicForm" value="Save" />
-                    <input type="button" class="CancelBtn" value="Cancel" />
-                    <span style="float:right" class="status-label"></span>
-                </div>
-            </div>
-        }
     </body>
 </html>

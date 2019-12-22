@@ -36,6 +36,6 @@ namespace TestCase.Models
 
         public override string FormDataParentPath { get; set; }
         public override string FormDataPath { get; set; }
-        public override string FormPath { get; set; }
+        public override string DataCreteria { get; set; }
     }
 }

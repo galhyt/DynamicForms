@@ -386,7 +386,7 @@ var TemplateDynamicFormConfiguration = (function () {
         }));
 
         return {
-            'FormTitle': $('[id*="__FormTitle"]').val(),
+            'FormTitle': $('[id$="FormTitle"]').val(),
             'FieldsMetaData': FieldsMetaData,
             'UITable': UITable
         };

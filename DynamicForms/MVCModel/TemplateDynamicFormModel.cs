@@ -16,7 +16,7 @@ namespace DynamicForms
         [JsonIgnore]
         string FormDataPath { get; set; }
         [JsonIgnore]
-        string FormPath { get; set; }
+        string DataCreteria { get; set; }
     }
 
     [ModelBinder(typeof(TemplateDynamicFormModelBinder))]
@@ -31,7 +31,7 @@ namespace DynamicForms
         public virtual void CastFromJObject(JObject baseModel) {}
         public virtual string FormDataParentPath { get; set; }
         public virtual string FormDataPath { get; set; }
-        public virtual string FormPath { get; set; }
+        public virtual string DataCreteria { get; set; }
 
         public TemplateDynamicFormModel()
         {

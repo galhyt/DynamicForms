@@ -37,7 +37,7 @@ namespace DynamicForms
             
             if (FormModel == null)
             {
-                TemplateFormData templateForm = ActionFilterHelper.LoadTemplateFormFromDataSrc(filterContext, DataFile, model.FormPath);
+                TemplateFormData templateForm = ActionFilterHelper.LoadTemplateFormFromDataSrc(filterContext, DataFile, model.DataCreteria);
                 if (templateForm != null)
                     FormModel =  Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(Newtonsoft.Json.JsonConvert.SerializeObject(new TemplateDynamicFormModel(templateForm)));
             }

@@ -15,11 +15,11 @@ namespace TestCase.Controllers
 {
     public class TestCaseController : Controller
     {
-        [DynamicFormsConfig(ActionType = "Load", DataConnection = "Data/DataSrc.json", DataParams = "FormsTemplatesPath=\"Forms.FormsTemplates\"", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
+        [DynamicFormsConfig(ActionType = "Load", DataConnection = "Data/DataSrc.json", DataEntity = "Forms.FormsTemplates", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
         public ActionResult Configuration(string FormPath = "TestCase")
         {
             TestCaseConfigModel model = new TestCaseConfigModel();
-            model.FormPath = FormPath;
+            model.DataCreteria = FormPath;
             string[] keys = FormPath.Split('.');
             if (keys != null)
             {
@@ -29,10 +29,11 @@ namespace TestCase.Controllers
             return View(model);
         }
 
-        [DynamicFormsConfig(ActionType = "Save", DataConnection = "Data/DataSrc.json", DataParams="FormsTemplatesPath=\"Forms.FormsTemplates\"", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
+        [DynamicFormsConfig(ActionType = "Save", DataConnection = "Data/DataSrc.json", DataEntity = "Forms.FormsTemplates", PartialViewHtmlSection = @"DynamicFormContainer", ModelMember = "Form")]
         [AcceptVerbs(HttpVerbs.Post)]
-        public ActionResult Configuration(TestCaseConfigModel model)
+        public ActionResult ConfigurationAjax([ModelBinder(typeof(TestCaseConfigModelBinder))]TestCaseConfigModel model)
         {
+            //TestCaseConfigModel _model = Newtonsoft.Json.JsonConvert.DeserializeObject<TestCaseConfigModel>(model);
             ViewBag.StatusLbl = "Saved Successfully!";
             return View(model);
         }
@@ -43,7 +44,7 @@ namespace TestCase.Controllers
             TestCaseShowModel model = new TestCaseShowModel();
             model.id = 1;
             model.FormDataPath = "Forms.FormsData[?(@.id==1)]";
-            model.FormPath = "Forms.FormsTemplates.TestCase.ExampleForm";
+            model.DataCreteria = "Forms.FormsTemplates.TestCase.ExampleForm";
             return View(model);
         }
 
@@ -53,7 +54,7 @@ namespace TestCase.Controllers
         {
             model.FormDataParentPath = "Forms.FormsData";
             model.FormDataPath = "Forms.FormsData[?(@.id==1)]";
-            model.FormPath = "Forms.FormsTemplates.TestCase.ExampleForm";
+            model.DataCreteria = "Forms.FormsTemplates.TestCase.ExampleForm";
             ViewBag.StatusLbl = "Saved Successfully!";
             return View(model);
         }

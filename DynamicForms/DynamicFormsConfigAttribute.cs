@@ -16,33 +16,41 @@ namespace DynamicForms
 {
     public interface IDynamicFormsConfigDataSrc
     {
-        object Find(string[] Params);
-        bool Save(object value, string[] Params);
+        object Find(string DataConnection, string DataEntity, string DataCreteria);
+        bool Save(string DataConnection, string DataEntity, string DataCreteria, object value);
     }
 
     public class JsonDataSrc : IDynamicFormsConfigDataSrc
     {
-        public object Find(string[] Params)
+        public object Find(string DataConnection, string DataEntity, string DataCreteria)
         {
-            string DataConnection = Params[0];
-            string FormsTemplatesPath = Params[1];
-            string FormPath = Params[2];
+            string DataFile = DataConnection;
+            string FormsTemplatesPath = DataEntity;
+            string FormPath = DataCreteria;
 
-            return LoadFormsFromDataSrc(DataConnection, FormsTemplatesPath);
+            return GetForm(DataFile, FormsTemplatesPath, FormPath);
         }
 
-        public bool Save(object value, string[] Params)
+        public bool Save(string DataConnection, string DataEntity, string DataCreteria, object value)
         {
+            string DataFile = DataConnection;
+            string FormsTemplatesPath = DataEntity;
+            string FormPath = DataCreteria;
 
+            string path = HttpContext.Current.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + @"\" + DataFile;
+            FormsTemplates Forms = ActionFilterHelper.LoadFormsFromDataSrc(path, DataConnection, DataEntity);
+            Forms[DataCreteria] = (TemplateFormData)value;
+            ActionFilterHelper.SaveFormToDataSrc(path, Forms, DataConnection, DataEntity);
         }
 
-        private FormsTemplates LoadFormsFromDataSrc(string DataFile, string FormsKey)
+        private TemplateFormData GetForm(string DataFile, string FormsKey, string FormPath)
         {
             JToken formsToken = GetFormsKeyJsonToken(DataFile, FormsKey);
             FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
             if (Forms == null) Forms = new FormsTemplates();
+            if (Forms[FormPath] == null) Forms.Init(FormPath);
 
-            return Forms;
+            return Forms[FormPath];
         }
 
         private JToken GetFormsKeyJsonToken(string DataFile, string FormsKey)
@@ -72,8 +80,9 @@ namespace DynamicForms
     {
         public string ActionType;
         public string LibraryPath;
-        public string DataFile;
-        public string FormsTemplatesPath;
+        public string DataConnection;
+        public string DataEntity;
+        public string DataCreteria;
         public string PartialViewHtmlSection;
         public string ModelMember;
 
@@ -109,22 +118,16 @@ namespace DynamicForms
 
         private void LoadType(ActionExecutedContext filterContext)
         {
-            //string FormPath = ((IActionFilterAttributes)filterContext.Controller.ViewData.Model).FormPath;
-            //var Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsTemplatesPath);
-            //if (Forms[FormPath] == null) Forms.Init(FormPath);
-
-
-            //ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)Forms[FormPath]);
-            ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)DataSrc.Find(((IActionFilterAttributes)filterContext.Controller.ViewData.Model).DataConfigParams));
+            ActionFilterHelper.SetModelMember(filterContext.Controller.ViewData.Model, ModelMember, (object)DataSrc.Find(DataConnection, DataEntity, ((IActionFilterAttributes)filterContext.Controller.ViewData.Model).DataCreteria));
             OverrideView(filterContext);
         }
 
         private void SaveType(ActionExecutedContext filterContext)
         {
-            string FormPath = ((IActionFilterAttributes)filterContext.Controller.ViewData.Model).FormPath;
-            FormsTemplates Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataFile, FormsTemplatesPath);
-            Forms[FormPath] = (TemplateFormData)ActionFilterHelper.GetModelMember(filterContext.Controller.ViewData.Model, ModelMember);
-            ActionFilterHelper.SaveFormToDataSrc(filterContext, Forms, DataFile, FormsTemplatesPath);
+            string DataCreteria = ((IActionFilterAttributes)filterContext.Controller.ViewData.Model).DataCreteria;
+            FormsTemplates Forms = ActionFilterHelper.LoadFormsFromDataSrc(filterContext, DataConnection, DataEntity);
+            Forms[DataCreteria] = (TemplateFormData)ActionFilterHelper.GetModelMember(filterContext.Controller.ViewData.Model, ModelMember);
+            ActionFilterHelper.SaveFormToDataSrc(filterContext, Forms, DataConnection, DataEntity);
 
             OverrideView(filterContext);
         }
@@ -152,7 +155,8 @@ namespace DynamicForms
 
         public static TemplateFormData LoadTemplateFormFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormPath)
         {
-            JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormPath);
+            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
+            JToken formsToken = GetFormsKeyJsonToken(path, DataFile, FormPath);
             TemplateFormData Form = formsToken.ToObject<TemplateFormData>();
             if (Form == null) Form = new TemplateFormData();
 
@@ -161,24 +165,24 @@ namespace DynamicForms
 
         public static JObject LoadFormDataFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormPath)
         {
-            JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormPath);
+            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
+            JToken formsToken = GetFormsKeyJsonToken(path, DataFile, FormPath);
             if (formsToken == null) return null;
 
             return formsToken.ToObject<JObject>();
         }
 
-        public static FormsTemplates LoadFormsFromDataSrc(ActionExecutedContext filterContext, string DataFile, string FormsKey)
+        public static FormsTemplates LoadFormsFromDataSrc(string path, string DataFile, string FormsKey)
         {
-            JToken formsToken = GetFormsKeyJsonToken(filterContext, DataFile, FormsKey);
+            JToken formsToken = GetFormsKeyJsonToken(path, DataFile, FormsKey);
             FormsTemplates Forms = Newtonsoft.Json.JsonConvert.DeserializeObject<FormsTemplates>(Newtonsoft.Json.JsonConvert.SerializeObject(formsToken));
             if (Forms == null) Forms = new FormsTemplates();
 
             return Forms;
         }
 
-        public static void SaveFormToDataSrc(ActionExecutedContext filterContext, object Forms, string DataFile, string FormsKey)
+        public static void SaveFormToDataSrc(string path, object Forms, string FormsKey)
         {
-            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
             JObject jsonObj = GetJsonObject(path);
             JToken formsToken = jsonObj.SelectToken(FormsKey);
             if (formsToken == null)
@@ -200,9 +204,8 @@ namespace DynamicForms
             ActionFilterHelper.SaveFile(path, content);
         }
 
-        private static JToken GetFormsKeyJsonToken(ActionExecutedContext filterContext, string DataFile, string FormsKey)
+        private static JToken GetFormsKeyJsonToken(string path, string DataFile, string FormsKey)
         {
-            string path = filterContext.HttpContext.Server.MapPath(HttpRuntime.AppDomainAppVirtualPath) + (@"\" + DataFile);
             JObject jsonObj = GetJsonObject(path);
             JToken formsToken = jsonObj.SelectToken(FormsKey);
             return formsToken;
