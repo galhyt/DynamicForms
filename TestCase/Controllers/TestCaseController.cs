@@ -38,7 +38,7 @@ namespace TestCase.Controllers
             return View(model);
         }
 
-        [DynamicFormsShow(ActionType = "Load", DataFile = "Data/DataSrc.json", PartialViewHtmlSection = @"DynamicFormContainer")]
+        [DynamicFormsShow(ActionType = "Load", DataConnection = "Data/DataSrc.json", PartialViewHtmlSection = @"DynamicFormContainer")]
         public ActionResult TestCaseShow()
         {
             TestCaseShowModel model = new TestCaseShowModel();
@@ -48,7 +48,7 @@ namespace TestCase.Controllers
             return View(model);
         }
 
-        [DynamicFormsShow(ActionType = "Save", DataFile = "Data/DataSrc.json", PartialViewHtmlSection = @"DynamicFormContainer")]
+        [DynamicFormsShow(ActionType = "Save", DataConnection = "Data/DataSrc.json", PartialViewHtmlSection = @"DynamicFormContainer")]
         [AcceptVerbs(HttpVerbs.Post)]
         public ActionResult TestCaseShow(TestCaseShowModel model)
         {
